@@ -1,0 +1,27 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 1%
+    patch:
+      default:
+        target: 70%
+        threshold: 1%
+
+comment:
+  layout: "header,diff,files,footer"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: false
+
+github_checks:
+  annotations: true
+
+ignore:
+  - "tests/"
+  - "build/"
+  - "Testing/"
+  - "_deps/"
+  - "*.h"

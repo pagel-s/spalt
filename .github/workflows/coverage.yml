@@ -1,0 +1,77 @@
+name: Code Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up build environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          libeigen3-dev \
+          libboost-all-dev \
+          python3-dev \
+          python3-pip \
+          lcov \
+          gcov
+
+    - name: Install dependencies
+      run: |
+        conda install -c conda-forge rdkit -y
+        pip install open3d
+
+    - name: Configure CMake with coverage
+      run: |
+        mkdir build
+        cd build
+        cmake .. \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_CXX_FLAGS="--coverage -g -O0" \
+          -DCMAKE_C_FLAGS="--coverage -g -O0" \
+          -DCMAKE_EXE_LINKER_FLAGS="--coverage"
+
+    - name: Build
+      run: |
+        cd build
+        make -j$(nproc)
+
+    - name: Run tests
+      run: |
+        cd build
+        ctest --output-on-failure --parallel $(nproc)
+
+    - name: Generate coverage report
+      run: |
+        cd build
+        # Generate coverage data
+        lcov --capture --directory . --output-file coverage.info
+        # Remove system and external library coverage
+        lcov --remove coverage.info '/usr/*' '/opt/*' '*/_deps/*' --output-file coverage.info
+        # Generate HTML report
+        genhtml coverage.info --output-directory coverage_html
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./build/coverage.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Archive coverage reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: build/coverage_html/

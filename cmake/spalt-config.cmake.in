@@ -1,0 +1,84 @@
+@PACKAGE_INIT@
+
+# spalt CMake configuration file
+
+set(SPALT_VERSION "@PROJECT_VERSION@")
+
+# Find dependencies
+find_package(Eigen3 REQUIRED)
+find_package(Open3D REQUIRED)
+
+# Try to find RDKit via CMake config first
+find_package(RDKit QUIET)
+if(NOT RDKit_FOUND)
+  # Manual RDKit search
+  find_path(RDKIT_INCLUDE_DIR
+    NAMES "rdkit/GraphMol/GraphMol.h" "GraphMol/GraphMol.h"
+    PATHS
+      "$ENV{CONDA_PREFIX}/include"
+      "$ENV{CONDA_PREFIX}/include/rdkit"
+      "/usr/include"
+      "/usr/include/rdkit"
+      "/usr/local/include"
+      "/usr/local/include/rdkit"
+      "/opt/rdkit/include"
+      "/opt/rdkit/include/rdkit"
+  )
+
+  set(RDKIT_LIBRARIES_NEEDED
+    RDKitGraphMol
+    RDKitSmilesParse
+    RDKitFileParsers
+    RDKitRDGeneral
+    RDKitSubstructMatch
+    RDKitDistGeometry
+    RDKitDistGeomHelpers
+    RDKitPartialCharges
+    RDKitForceFieldHelpers
+    RDKitForceField
+    RDKitChemTransforms
+    RDKitDescriptors
+    RDKitMolAlign
+  )
+
+  foreach(lib ${RDKIT_LIBRARIES_NEEDED})
+    find_library(${lib}_LIBRARY
+      NAMES ${lib}
+      PATHS
+        "$ENV{CONDA_PREFIX}/lib"
+        "/usr/lib"
+        "/usr/local/lib"
+        "/opt/rdkit/lib"
+    )
+    if(${lib}_LIBRARY)
+      list(APPEND RDKIT_LIBRARIES ${${lib}_LIBRARY})
+    endif()
+  endforeach()
+
+  if(RDKIT_INCLUDE_DIR AND RDKIT_LIBRARIES)
+    add_library(RDKit INTERFACE IMPORTED)
+    set_target_properties(RDKit PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${RDKIT_INCLUDE_DIR}"
+      INTERFACE_LINK_LIBRARIES "${RDKIT_LIBRARIES}"
+    )
+  else()
+    set(RDKit_FOUND FALSE)
+  endif()
+endif()
+
+if(NOT RDKit_FOUND)
+  set_package_properties(RDKit PROPERTIES
+    TYPE REQUIRED
+    DESCRIPTION "RDKit cheminformatics library"
+    PURPOSE "Required for molecular structure handling"
+  )
+endif()
+
+# Import targets
+include("${CMAKE_CURRENT_LIST_DIR}/spalt-targets.cmake")
+
+# Set legacy variables for backwards compatibility
+set(SPALT_LIBRARIES spalt::spalt_lib)
+set(SPALT_INCLUDE_DIRS "@CMAKE_INSTALL_FULL_INCLUDEDIR@")
+
+check_required_components(spalt)

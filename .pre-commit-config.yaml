@@ -1,0 +1,86 @@
+repos:
+  # Code formatting
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: debug-statements
+      - id: check-docstring-first
+      - id: check-ast
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+      - id: check-merge-conflict
+
+  # C++ formatting with clang-format
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v16.0.6
+    hooks:
+      - id: clang-format
+        args: [--style=file]
+        files: \.(cpp|h|hpp|c|cc|cxx)$
+        exclude: ^(build/|_deps/|deps/)
+
+  # C++ linting with clang-tidy
+  - repo: https://github.com/pre-commit/mirrors-clang-tidy
+    rev: v16.0.6
+    hooks:
+      - id: clang-tidy
+        args: [--config-file=.clang-tidy]
+        files: \.(cpp|h|hpp|c|cc|cxx)$
+        exclude: ^(build/|_deps/|deps/)
+        additional_dependencies: [clang-tidy]
+
+  # CMake formatting
+  - repo: https://github.com/cheshirekow/cmake-format-precommit
+    rev: v0.6.13
+    hooks:
+      - id: cmake-format
+        args: [--config-file=.cmake-format.yaml]
+        files: CMakeLists\.txt$
+        exclude: ^(build/|_deps/|deps/)
+
+  # Python formatting (for any Python scripts)
+  - repo: https://github.com/psf/black
+    rev: 23.7.0
+    hooks:
+      - id: black
+        files: \.py$
+        exclude: ^(build/|_deps/|deps/)
+
+  # Security scanning
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: ^(build/|_deps/|deps/)
+
+  # License header checking
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.4
+    hooks:
+      - id: insert-license
+        args: [--license-filepath, LICENSE_HEADER.txt]
+        files: \.(cpp|h|hpp|c|cc|cxx)$
+        exclude: ^(build/|_deps/|deps/)
+
+# Configuration for pre-commit
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

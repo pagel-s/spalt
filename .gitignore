@@ -1,0 +1,24 @@
+# CMake build directories
+build/
+cmake-build-*/
+
+# CMake files
+CMakeFiles/
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+install_manifest.txt
+
+# IDEs
+.vscode/
+.idea/
+.clangd/
+compile_commands.json
+
+context/
+
+# CMake test results
+Testing/
+
+# Examples folder (keep in repo)
+# examples/ - contains sample input files
