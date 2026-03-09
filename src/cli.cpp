@@ -696,6 +696,7 @@ void alignMolecule(Molecule& reference_mol, Molecule& input_mol, const std::stri
     }
 }
 
+#ifndef SPALT_TESTS
 int main(int argc, char* argv[]) {
     if (argc < 4) {
         printUsage(argv[0]);
@@ -859,3 +860,4 @@ int main(int argc, char* argv[]) {
     std::cout << "Results saved to: " << output_dir << std::endl;
     return 0;
 }
+#endif

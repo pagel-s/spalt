@@ -23,8 +23,9 @@ add_executable(spalt_tests
   test_alignment.cpp
   test_fibonacci_surface.cpp
   test_cli_integration.cpp
-    test_normals_usage.cpp
-    test_segfault_fixes.cpp
+  test_normals_usage.cpp
+  test_segfault_fixes.cpp
+  test_tsv_parsing.cpp
 )
 
 # Give the tests access to headers in src/
@@ -40,9 +41,10 @@ target_include_directories(spalt_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
    ${CMAKE_SOURCE_DIR}/src/props/hydrophobicity.cpp
    ${CMAKE_SOURCE_DIR}/src/props/hbond.cpp
    ${CMAKE_SOURCE_DIR}/src/props/rdkit_utils.cpp
-    ${CMAKE_SOURCE_DIR}/src/props/property_params.cpp
-    ${CMAKE_SOURCE_DIR}/src/conformer_generator.cpp
-    ${CMAKE_SOURCE_DIR}/src/surface_fibonacci.cpp
+   ${CMAKE_SOURCE_DIR}/src/props/property_params.cpp
+   ${CMAKE_SOURCE_DIR}/src/conformer_generator.cpp
+   ${CMAKE_SOURCE_DIR}/src/surface_fibonacci.cpp
+   ${CMAKE_SOURCE_DIR}/src/cli.cpp
  )
 
 target_link_libraries(spalt_tests PRIVATE
@@ -52,6 +54,7 @@ target_link_libraries(spalt_tests PRIVATE
     RDKit
 )
 target_compile_features(spalt_tests PRIVATE cxx_std_${CMAKE_CXX_STANDARD})
+target_compile_definitions(spalt_tests PRIVATE SPALT_TESTS=1)
 
 include(GoogleTest)
 gtest_discover_tests(spalt_tests)
