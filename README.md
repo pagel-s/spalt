@@ -112,7 +112,7 @@ No manual configuration is needed for most installations!
 
 ### **Input/Output**
 - `reference_file`: Reference molecule file (.sdf, .mol, .mol2, .pdb)
-- `input`: Input molecule (file, SMILES string, or text file with SMILES)
+- `input`: Input molecule (file, SMILES string, or text file with SMILES). Text files can optionally contain a molecule name in the second column separated by a tab or space.
 - `output_dir`: Output directory for results
 
 ### **Surface Properties**
