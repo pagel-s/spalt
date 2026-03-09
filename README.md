@@ -86,8 +86,8 @@ No manual configuration is needed for most installations!
 
 ### Advanced Conformer Generation
 ```bash
-# Generate multiple conformers and align best ones
-./spalt reference.sdf "CCO" output_dir/ --conformers 10 --use-advanced --top-n 5
+# Generate 10 diverse conformers from 100 samples and align best ones
+./spalt reference.sdf "CCO" output_dir/ --conformers 10 --sample 100 --top-n 5
 
 # Use XTB quantum chemistry charges for high-accuracy ESP
 ./spalt reference.sdf input.sdf output_dir/ --charge-method xtb --properties esp
@@ -123,10 +123,10 @@ No manual configuration is needed for most installations!
 - `--radius R`: Probe radius for surface generation (default: 1.4)
 
 ### **Conformer Generation**
-- `--conformers N`: Number of conformers to generate (default: 1)
-- `--use-advanced`: Use advanced conformer generation with clustering
-- `--total-confs N`: Total conformers for advanced generation (default: 100)
-- `--num-clusters N`: Number of clusters for conformer selection (default: 5)
+- `--conformers N`: Final number of conformers to align (default: 1)
+- `--sample M`: Number of candidates to sample from (default: 1). If M > N, clustering is used to pick diverse conformers.
+- `--use-advanced`: Use advanced conformer generation (shortcut for `--sample 50`)
+- `--random-seed N`: Random seed for reproducible generation (default: 4)
 - `--top-n N`: Save only the top N best aligned conformers (default: all)
 
 ### **Output Options**

@@ -59,23 +59,16 @@ void printUsage(const char* program_name) {
     std::cout << "                      - points: Point cloud" << std::endl;
     std::cout << "  --include-normals Include normal vectors in output (default: false)"
               << std::endl;
+    std::cout << "  --conformers N    Number of conformers to align (default: 1)" << std::endl;
+    std::cout << "  --sample M        Number of conformers to sample from (default: 1)." << std::endl;
+    std::cout << "                      If M > N, diverse conformers are selected via clustering." << std::endl;
     std::cout
-        << "  --conformers N    [DEPRECATED] Number of diverse conformers to select (maps to --num-clusters)"
-        << std::endl;
-    std::cout << "                      Use --num-clusters instead for clarity (default: 3)"
-              << std::endl;
-    std::cout
-        << "  --save-meshes     Save individual mesh files for each conformer (default: false)"
-        << std::endl;
-    std::cout << "  --total-confs N   Total conformers to generate before clustering (default: 50)"
-              << std::endl;
-    std::cout << "  --num-clusters N  Number of diverse conformers to select via clustering (default: 5)"
-              << std::endl;
-    std::cout
-        << "  --use-advanced    Use advanced conformer generation with clustering (default: false)"
-        << std::endl;
+        << "  --use-advanced    Use advanced conformer generation (alias for --sample 50)" << std::endl;
     std::cout
         << "  --random-seed N   Random seed for reproducible conformer generation (default: 4)"
+        << std::endl;
+    std::cout
+        << "  --save-meshes     Save individual mesh files for each conformer (default: false)"
         << std::endl;
     std::cout
         << "  --charge-method M Charge calculation method for ESP (default: rdkit):"
@@ -108,17 +101,17 @@ void printUsage(const char* program_name) {
               << std::endl;
     std::cout << "  " << program_name << " reference.sdf input.sdf ./output/ --output-type points"
               << std::endl;
-    std::cout << "  " << program_name
-              << " reference.sdf \"CCO\" ./output/ --conformers 5 --save-meshes" << std::endl;
+    std::cout << "  " << program_name << " reference.sdf \"CCO\" ./output/ --conformers 5 --save-meshes"
+              << std::endl;
     std::cout << "  " << program_name << " reference.sdf smiles.txt ./output/ --conformers 2"
-              << std::endl;
+          << std::endl;
     std::cout
-        << "  " << program_name
-        << " reference.sdf \"CCO\" ./output/ --use-advanced --total-confs 100 --num-clusters 8"
-        << std::endl;
+    << "  " << program_name
+    << " reference.sdf \"CCO\" ./output/ --sample 100 --conformers 8"
+    << std::endl;
     std::cout << "  " << program_name
-              << " reference.sdf \"CCO\" ./output/ --use-advanced --random-seed 42 --save-meshes"
-              << std::endl;
+          << " reference.sdf \"CCO\" ./output/ --use-advanced --random-seed 42 --save-meshes"
+          << std::endl;
     std::cout << "  " << program_name
               << " reference.sdf \"CCO\" ./output/ --charge-method xtb --properties esp"
               << std::endl;
@@ -165,9 +158,12 @@ std::vector<std::string> parseProperties(const std::string& properties_str) {
 SurfaceParams parseSurfaceParams(int argc, char* argv[], int& start_index) {
     SurfaceParams params;
     
+    // Default to 1 conformer for CLI if not specified
+    params.conformer_params.num_clusters = 1;
+    params.conformer_params.total_conformers = 1;
+    
     // Track parameter usage for conflict detection
-    bool conformers_specified = false;
-    bool num_clusters_specified = false;
+    bool total_confs_specified = false;
 
     while (start_index < argc) {
         std::string arg = argv[start_index];
@@ -219,31 +215,25 @@ SurfaceParams parseSurfaceParams(int argc, char* argv[], int& start_index) {
             }
         } else if (arg == "--include-normals") {
             params.include_normals = true;
-        } else if (arg == "--conformers" && start_index + 1 < argc) {
-            if (num_clusters_specified) {
-                std::cerr << "Warning: --conformers specified after --num-clusters. "
-                          << "Using --num-clusters value (" << params.conformer_params.num_clusters 
-                          << ") and ignoring --conformers (" << argv[start_index + 1] << ")" << std::endl;
-            } else {
-                conformers_specified = true;
-                params.conformer_params.num_clusters = std::stoi(argv[++start_index]);
-                std::cerr << "Info: --conformers maps to num_clusters for backward compatibility. "
-                          << "Consider using --num-clusters instead for clarity." << std::endl;
-            }
-            ++start_index; // Skip the value even if we ignored it
-        } else if (arg == "--save-meshes") {
-            params.save_meshes = true;
-        } else if (arg == "--total-confs" && start_index + 1 < argc) {
-            params.conformer_params.total_conformers = std::stoi(argv[++start_index]);
-        } else if (arg == "--num-clusters" && start_index + 1 < argc) {
-            if (conformers_specified) {
-                std::cerr << "Warning: --num-clusters specified after --conformers. "
-                          << "Overriding --conformers value with --num-clusters (" << argv[start_index + 1] << ")" << std::endl;
-            }
-            num_clusters_specified = true;
+        } else if ((arg == "--conformers" || arg == "--num-clusters") && start_index + 1 < argc) {
             params.conformer_params.num_clusters = std::stoi(argv[++start_index]);
+            if (!total_confs_specified) {
+                params.conformer_params.total_conformers = params.conformer_params.num_clusters;
+            }
+        } else if ((arg == "--sample" || arg == "--total-confs") && start_index + 1 < argc) {
+            params.conformer_params.total_conformers = std::stoi(argv[++start_index]);
+            total_confs_specified = true;
+            if (params.conformer_params.total_conformers > params.conformer_params.num_clusters) {
+                params.conformer_params.enable_optimization = true;
+            }
         } else if (arg == "--use-advanced") {
             params.conformer_params.enable_optimization = true;
+            if (!total_confs_specified) {
+                params.conformer_params.total_conformers = 50;
+                total_confs_specified = true;
+            }
+        } else if (arg == "--save-meshes") {
+            params.save_meshes = true;
         } else if (arg == "--random-seed" && start_index + 1 < argc) {
             params.conformer_params.random_seed = std::stoi(argv[++start_index]);
         } else if (arg == "--charge-method" && start_index + 1 < argc) {
@@ -270,9 +260,12 @@ SurfaceParams parseSurfaceParams(int argc, char* argv[], int& start_index) {
     
     // Final validation and info
     if (params.conformer_params.enable_optimization) {
-        std::cerr << "Info: Advanced conformer generation enabled:" << std::endl;
-        std::cerr << "  - Total conformers to generate: " << params.conformer_params.total_conformers << std::endl;
-        std::cerr << "  - Clusters for diverse selection: " << params.conformer_params.num_clusters << std::endl;
+        std::cerr << "Info: Conformer selection enabled (Clustering):" << std::endl;
+        std::cerr << "  - Final conformers to align: " << params.conformer_params.num_clusters << std::endl;
+        std::cerr << "  - Sampling from pool size: " << params.conformer_params.total_conformers << std::endl;
+    } else if (params.conformer_params.num_clusters > 1) {
+        std::cerr << "Info: Multiple conformer generation enabled:" << std::endl;
+        std::cerr << "  - Generating and aligning " << params.conformer_params.num_clusters << " conformers" << std::endl;
     }
 
     return params;
