@@ -475,9 +475,23 @@ class Molecule {
          * molecular structure.
          */
         void remove_hydrogens_from_mol();
-        
+
+        /**
+         * @brief Set the name of the molecule
+         */
+        void set_name(const std::string& n) { name = n; }
+
+        /**
+         * @brief Get the name of the molecule
+         */
+        std::string get_name() const { return name; }
 
     private:
+        /**
+         * @brief Name of the molecule
+         */
+        std::string name;
+
         /**
          * @brief Original SMILES string
          */

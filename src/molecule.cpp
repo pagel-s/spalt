@@ -434,6 +434,10 @@ void Molecule::saveConformerSDF(unsigned int conformer_id, const std::string& fi
         if (include_properties) {
             std::ofstream file(filename, std::ios::app);
             if (file.is_open()) {
+                if (!name.empty()) {
+                    file << "> <NAME>\n";
+                    file << name << "\n\n";
+                }
                 file << "> <SMILES>\n";
                 file << smiles << "\n\n";
                 file << "> <FormalCharge>\n";
@@ -498,6 +502,10 @@ void Molecule::saveMultiConformerSDF(
 
             if (include_properties) {
                 // Add alignment scores as SDF properties
+                if (!name.empty()) {
+                    file << "> <NAME>\n";
+                    file << name << "\n\n";
+                }
                 file << "> <SMILES>\n";
                 file << smiles << "\n\n";
                 file << "> <FormalCharge>\n";

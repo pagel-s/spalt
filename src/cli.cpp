@@ -273,15 +273,13 @@ SurfaceParams parseSurfaceParams(int argc, char* argv[], int& start_index) {
         std::cerr << "Info: Advanced conformer generation enabled:" << std::endl;
         std::cerr << "  - Total conformers to generate: " << params.conformer_params.total_conformers << std::endl;
         std::cerr << "  - Clusters for diverse selection: " << params.conformer_params.num_clusters << std::endl;
-        std::cerr << "  - Final result: up to " << params.conformer_params.num_clusters 
-                  << " diverse conformers selected from " << params.conformer_params.total_conformers << " generated" << std::endl;
     }
 
     return params;
 }
 
-std::vector<std::string> loadSmilesFromFile(const std::string& file_path) {
-    std::vector<std::string> smiles_list;
+std::vector<std::pair<std::string, std::string>> loadSmilesFromFile(const std::string& file_path) {
+    std::vector<std::pair<std::string, std::string>> smiles_list;
     std::ifstream file(file_path);
 
     if (!file.is_open()) {
@@ -299,7 +297,26 @@ std::vector<std::string> loadSmilesFromFile(const std::string& file_path) {
 
         // Skip empty lines and comments
         if (!line.empty() && line[0] != '#') {
-            smiles_list.push_back(line);
+            std::string smiles = line;
+            std::string name = "";
+            size_t tab_pos = line.find('\t');
+            if (tab_pos != std::string::npos) {
+                smiles = line.substr(0, tab_pos);
+                name = line.substr(tab_pos + 1);
+                // Trim trailing whitespace from smiles
+                smiles.erase(smiles.find_last_not_of(" \t\r") + 1);
+                // Trim leading whitespace from name
+                name.erase(0, name.find_first_not_of(" \t\r"));
+            } else {
+                size_t space_pos = line.find(' ');
+                if (space_pos != std::string::npos) {
+                    smiles = line.substr(0, space_pos);
+                    name = line.substr(space_pos + 1);
+                    smiles.erase(smiles.find_last_not_of(" \t\r") + 1);
+                    name.erase(0, name.find_first_not_of(" \t\r"));
+                }
+            }
+            smiles_list.push_back({smiles, name});
         }
     }
 
@@ -346,9 +363,12 @@ Molecule loadMolecule(const std::string& source,
             return mol;
         } else if (ext == "txt") {
             // For text files, assume they contain SMILES strings and load the first one
-            std::vector<std::string> smiles_list = loadSmilesFromFile(source);
+            std::vector<std::pair<std::string, std::string>> smiles_list = loadSmilesFromFile(source);
             if (!smiles_list.empty()) {
-                Molecule mol(smiles_list[0].c_str());
+                Molecule mol(smiles_list[0].first.c_str());
+                if (!smiles_list[0].second.empty()) {
+                    mol.set_name(smiles_list[0].second);
+                }
                 if (mol.get_mol() != nullptr) {
                     
                     if (surface_params.conformer_params.enable_optimization) {
@@ -753,7 +773,7 @@ int main(int argc, char* argv[]) {
 #endif
 
                 try {
-                    std::vector<std::string> smiles_list = loadSmilesFromFile(input_source);
+                    std::vector<std::pair<std::string, std::string>> smiles_list = loadSmilesFromFile(input_source);
                     std::string base_name = std::filesystem::path(input_source).stem().string();
 
 #ifdef DEBUG
@@ -762,13 +782,17 @@ int main(int argc, char* argv[]) {
 
                     for (size_t i = 0; i < smiles_list.size(); ++i) {
                         std::cout << "\nProcessing SMILES " << (i + 1) << "/" << smiles_list.size()
-                                  << ": " << smiles_list[i] << std::endl;
+                                  << ": " << smiles_list[i].first << std::endl;
 
                         try {
                             // Use loadMolecule to properly handle both simple and advanced
                             // conformer generation
                             Molecule input_mol =
-                                loadMolecule(smiles_list[i], surface_params);
+                                loadMolecule(smiles_list[i].first, surface_params);
+
+                            if (!smiles_list[i].second.empty()) {
+                                input_mol.set_name(smiles_list[i].second);
+                            }
 
                             std::string mol_name = base_name + "_smiles_" + std::to_string(i + 1);
                             alignMolecule(reference_mol, input_mol, output_dir, surface_params,
