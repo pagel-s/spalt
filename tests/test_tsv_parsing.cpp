@@ -1,14 +1,14 @@
 #include <gtest/gtest.h>
-#include <fstream>
 #include <filesystem>
-#include <vector>
+#include <fstream>
 #include <string>
+#include <vector>
 
 // Forward declaration of the function we want to test from cli.cpp
 std::vector<std::pair<std::string, std::string>> loadSmilesFromFile(const std::string& file_path);
 
 class TSVParsingTest : public ::testing::Test {
-protected:
+  protected:
     void SetUp() override {
         test_file_path = "test_input.txt";
     }

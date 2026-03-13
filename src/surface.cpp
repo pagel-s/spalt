@@ -2,8 +2,8 @@
 #include "fps.h"
 #include "props/esp.h"
 #include "props/property_params.h"
-#include "utils.h"
 #include "surface_fibonacci.h"
+#include "utils.h"
 
 #include <algorithm>
 #include <cassert>
@@ -49,7 +49,8 @@ Surface::Surface(const Molecule& molecule, int conformer_id, int num_vertices, d
     assert(density > 0 && "density must be greater than 0");
     assert(hdensity > 0 && "hdensity must be greater than 0");
     assert((type == "tses" || type == "ases") && "type must be either tses or ases");
-    assert((program == "msms" || program == "fibonacci") && "program must be either msms or fibonacci");
+    assert((program == "msms" || program == "fibonacci") &&
+           "program must be either msms or fibonacci");
     assert((sample_method == "random" || sample_method == "fps" || sample_method == "full") &&
            "sample_method must be random, fps, or full");
 
@@ -101,7 +102,7 @@ void Surface::generateSurface(std::string_view input_file, std::string_view outp
         }
         return;
     }
-    
+
     std::string input_str(input_file);
     std::string extension = getFileExtension(input_file);
 
@@ -212,10 +213,11 @@ void Surface::applySubsampling() {
         // Already have fewer or equal vertices than requested
         return;
     }
-    
+
     // Warn user that vertices will be subsampled
-    std::cout << "Warning: Surface has " << current_vertices << " vertices but --vertices=" 
-              << num_vertices << " requested. Subsampling using " << sample_method << " method." << std::endl;
+    std::cout << "Warning: Surface has " << current_vertices
+              << " vertices but --vertices=" << num_vertices << " requested. Subsampling using "
+              << sample_method << " method." << std::endl;
 
     std::map<int, std::pair<std::string, std::vector<double>>> sampled_vertices;
 
@@ -291,9 +293,9 @@ std::map<int, std::pair<std::string, std::vector<double>>> Surface::select_n_ver
     for (size_t i = 0; i < n_vertices; i++) {
         // Safety check: ensure index is within bounds
         if (v[i] < 0 || static_cast<size_t>(v[i]) >= vertices.size()) {
-            std::cerr << "Warning: Invalid vertex index " << v[i] 
-                      << " (total vertices: " << vertices.size() 
-                      << "), skipping vertex " << i << std::endl;
+            std::cerr << "Warning: Invalid vertex index " << v[i]
+                      << " (total vertices: " << vertices.size() << "), skipping vertex " << i
+                      << std::endl;
             continue;
         }
         selected_vertices[i] = vertices[v[i]];
@@ -315,25 +317,24 @@ std::map<int, std::pair<std::string, std::vector<double>>> Surface::select_n_ver
     for (size_t i = 0; i < sampled_indices.size(); i++) {
         // Safety check: ensure index is within bounds
         if (sampled_indices[i] < 0 || static_cast<size_t>(sampled_indices[i]) >= vertices.size()) {
-            std::cerr << "Warning: Invalid sampled vertex index " << sampled_indices[i] 
-                      << " (total vertices: " << vertices.size() 
-                      << "), skipping vertex " << i << std::endl;
+            std::cerr << "Warning: Invalid sampled vertex index " << sampled_indices[i]
+                      << " (total vertices: " << vertices.size() << "), skipping vertex " << i
+                      << std::endl;
             continue;
         }
-        
+
         const auto& vertex = vertices[sampled_indices[i]];
         // Safety check: ensure vertex has enough coordinates
         if (vertex.second.size() < 6) {
-            std::cerr << "Warning: Vertex " << sampled_indices[i] 
-                      << " has insufficient coordinates (" << vertex.second.size() 
-                      << "), skipping" << std::endl;
+            std::cerr << "Warning: Vertex " << sampled_indices[i]
+                      << " has insufficient coordinates (" << vertex.second.size() << "), skipping"
+                      << std::endl;
             continue;
         }
-        
-        selected_vertices[i] = {
-            vertex.first,
-            {vertex.second[0], vertex.second[1], vertex.second[2],
-             vertex.second[3], vertex.second[4], vertex.second[5]}};
+
+        selected_vertices[i] = {vertex.first,
+                                {vertex.second[0], vertex.second[1], vertex.second[2],
+                                 vertex.second[3], vertex.second[4], vertex.second[5]}};
     }
     return selected_vertices;
 }
@@ -358,7 +359,7 @@ void Surface::invalidateProperties() {
 double Surface::getVertexColorValue(
     const std::string& property_name, int vertex_index, const std::string& fallback_atom_name,
     const std::unordered_map<std::string, std::any>* property_cache) const {
-    (void)fallback_atom_name; // Suppress unused parameter warning
+    (void)fallback_atom_name;  // Suppress unused parameter warning
     // If no property specified, return neutral value (0.0)
     if (property_name.empty()) {
         return 0.0;
@@ -816,71 +817,71 @@ void Surface::generateFibonacciSurface(const spalt::FibonacciSurfaceParams& fibo
     if (!mol_ptr) {
         throw std::runtime_error("Molecule is null");
     }
-    
+
     if (mol_ptr->getNumConformers() == 0) {
         throw std::runtime_error("Molecule has no conformers for surface generation");
     }
-    
+
     const auto& conformer = mol_ptr->getConformer(conformer_id);
     int num_atoms = conformer.getNumAtoms();
-    
+
     if (num_atoms == 0) {
         throw std::runtime_error("Conformer has no atoms");
     }
-    
+
     // Extract atom centers and radii - EXACTLY like working test
     Eigen::MatrixXd centers(num_atoms, 3);
     Eigen::VectorXd radii(num_atoms);
-    
+
     for (int i = 0; i < num_atoms; ++i) {
         const auto& pos = conformer.getAtomPos(i);
         centers(i, 0) = pos.x;
         centers(i, 1) = pos.y;
         centers(i, 2) = pos.z;
-        
+
         // Get atom symbol and look up radius
         const auto& atom = mol_ptr->getAtomWithIdx(i);
         std::string symbol = atom->getSymbol();
         auto it = vdw_radii_.find(symbol);
         radii(i) = (it != vdw_radii_.end()) ? it->second : DEFAULT_VDW_RADIUS;
     }
-    
+
     // Create Fibonacci surface generator
     spalt::FibonacciSurfaceGenerator generator(fibonacci_params);
-    
+
     // Generate surface
     std::shared_ptr<spalt::SimpleMesh> mesh;
     std::shared_ptr<spalt::SimplePointCloud> point_cloud;
     auto result = generator.generateSurface(centers, radii);
     mesh = result.first;
     point_cloud = result.second;
-    
+
     if (!mesh || !point_cloud) {
-        std::cerr << "Error: Failed to generate Fibonacci surface - mesh or point_cloud is null" << std::endl;
+        std::cerr << "Error: Failed to generate Fibonacci surface - mesh or point_cloud is null"
+                  << std::endl;
         throw std::runtime_error("Failed to generate Fibonacci surface");
-    }    
-    
+    }
+
     // Convert simple mesh to internal format
     vertices.clear();
     faces.clear();
-    
+
     // Convert vertices
     const auto& mesh_vertices = mesh->vertices;
     const auto& mesh_faces = mesh->triangles;
-    
+
     for (size_t i = 0; i < mesh_vertices.size(); ++i) {
         const auto& vertex = mesh_vertices[i];
-        
+
         // Compute normal from mesh faces if available
         Eigen::Vector3d normal(0.0, 0.0, 0.0);
         if (!mesh_faces.empty()) {
             normal = computeVertexNormal(i, mesh_vertices, mesh_faces);
         }
-        
-        std::vector<double> coords_normals = {
-            vertex.x(), vertex.y(), vertex.z(), normal.x(), normal.y(), normal.z()
-        };
-        
+
+        std::vector<double> coords_normals = {vertex.x(), vertex.y(), vertex.z(),
+                                              normal.x(), normal.y(), normal.z()};
+
         // Find closest atom for naming
         int closest_atom = 0;
         double min_dist = std::numeric_limits<double>::max();
@@ -891,57 +892,59 @@ void Surface::generateFibonacciSurface(const spalt::FibonacciSurfaceParams& fibo
                 closest_atom = j;
             }
         }
-        
+
         const auto& atom = molecule.get_mol()->getAtomWithIdx(closest_atom);
         std::string atom_name = atom->getSymbol() + std::to_string(closest_atom);
-        
+
         vertices[i] = std::make_pair(atom_name, coords_normals);
     }
-    
+
     // Convert faces (triangles)
     for (const auto& face : mesh_faces) {
         std::vector<int> face_indices = {face.x(), face.y(), face.z()};
         faces.push_back(face_indices);
     }
-    
+
     // Apply subsampling if needed
     if (sample_method != "full") {
         applySubsampling();
     }
 }
 
-Eigen::Vector3d Surface::computeVertexNormal(size_t vertex_index, 
-                                            const std::vector<Eigen::Vector3d>& vertices, 
-                                            const std::vector<Eigen::Vector3i>& faces) const {
+Eigen::Vector3d Surface::computeVertexNormal(size_t vertex_index,
+                                             const std::vector<Eigen::Vector3d>& vertices,
+                                             const std::vector<Eigen::Vector3i>& faces) const {
     Eigen::Vector3d normal_sum(0.0, 0.0, 0.0);
     int face_count = 0;
-    
+
     // Safety check: ensure vertex_index is within bounds
     if (vertex_index >= vertices.size()) {
-        std::cerr << "Warning: Invalid vertex_index " << vertex_index 
+        std::cerr << "Warning: Invalid vertex_index " << vertex_index
                   << " (total vertices: " << vertices.size() << ")" << std::endl;
         return Eigen::Vector3d(0.0, 0.0, 0.0);
     }
-    
+
     // Find all faces that contain this vertex
     for (const auto& face : faces) {
         // Safety check: ensure face indices are within bounds
-        if (face.x() < 0 || static_cast<size_t>(face.x()) >= vertices.size() ||
-            face.y() < 0 || static_cast<size_t>(face.y()) >= vertices.size() ||
-            face.z() < 0 || static_cast<size_t>(face.z()) >= vertices.size()) {
+        if (face.x() < 0 || static_cast<size_t>(face.x()) >= vertices.size() || face.y() < 0 ||
+            static_cast<size_t>(face.y()) >= vertices.size() || face.z() < 0 ||
+            static_cast<size_t>(face.z()) >= vertices.size()) {
             continue;  // Skip invalid face
         }
-        
-        if (static_cast<size_t>(face.x()) == vertex_index || static_cast<size_t>(face.y()) == vertex_index || static_cast<size_t>(face.z()) == vertex_index) {
+
+        if (static_cast<size_t>(face.x()) == vertex_index ||
+            static_cast<size_t>(face.y()) == vertex_index ||
+            static_cast<size_t>(face.z()) == vertex_index) {
             // Compute face normal
             Eigen::Vector3d v0 = vertices[face.x()];
             Eigen::Vector3d v1 = vertices[face.y()];
             Eigen::Vector3d v2 = vertices[face.z()];
-            
+
             Eigen::Vector3d edge1 = v1 - v0;
             Eigen::Vector3d edge2 = v2 - v0;
             Eigen::Vector3d face_normal = edge1.cross(edge2);
-            
+
             // Normalize face normal
             double norm = face_normal.norm();
             if (norm > 1e-8) {
@@ -951,7 +954,7 @@ Eigen::Vector3d Surface::computeVertexNormal(size_t vertex_index,
             }
         }
     }
-    
+
     // Average the face normals
     if (face_count > 0) {
         normal_sum /= face_count;
@@ -961,6 +964,6 @@ Eigen::Vector3d Surface::computeVertexNormal(size_t vertex_index,
             normal_sum /= norm;
         }
     }
-    
+
     return normal_sum;
 }

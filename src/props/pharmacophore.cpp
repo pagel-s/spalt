@@ -1,30 +1,38 @@
 #include "pharmacophore.h"
+#include <GraphMol/Conformer.h>
+#include <GraphMol/GraphMol.h>
+#include <GraphMol/RingInfo.h>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
 #include "hbond.h"
 #include "rdkit_utils.h"
 #include "surface.h"
-#include <GraphMol/GraphMol.h>
-#include <GraphMol/Conformer.h>
-#include <GraphMol/RingInfo.h>
-#include <cmath>
-#include <algorithm>
-#include <iostream>
 
-PharmacophoreProperty::PharmacophoreProperty(PharmaType type) : type_(type) {}
+PharmacophoreProperty::PharmacophoreProperty(PharmaType type) : type_(type) {
+}
 
 std::string PharmacophoreProperty::key() const {
     switch (type_) {
-        case PharmaType::AROMATIC: return "pharma_aromatic";
-        case PharmaType::POSITIVE: return "pharma_pos";
-        case PharmaType::NEGATIVE: return "pharma_neg";
-        case PharmaType::DONOR: return "pharma_donor";
-        case PharmaType::ACCEPTOR: return "pharma_acceptor";
+    case PharmaType::AROMATIC:
+        return "pharma_aromatic";
+    case PharmaType::POSITIVE:
+        return "pharma_pos";
+    case PharmaType::NEGATIVE:
+        return "pharma_neg";
+    case PharmaType::DONOR:
+        return "pharma_donor";
+    case PharmaType::ACCEPTOR:
+        return "pharma_acceptor";
     }
     return "pharma_unknown";
 }
 
-std::vector<PharmacophoreProperty::Feature> PharmacophoreProperty::extractFeatures(std::shared_ptr<RDKit::ROMol> mol) const {
+std::vector<PharmacophoreProperty::Feature> PharmacophoreProperty::extractFeatures(
+    std::shared_ptr<RDKit::ROMol> mol) const {
     std::vector<Feature> features;
-    if (mol->getNumConformers() == 0) return features;
+    if (mol->getNumConformers() == 0)
+        return features;
     auto& conf = mol->getConformer();
 
     if (type_ == PharmaType::AROMATIC) {
@@ -62,7 +70,8 @@ std::vector<PharmacophoreProperty::Feature> PharmacophoreProperty::extractFeatur
             auto atom = mol->getAtomWithIdx(i);
             if (atom->getFormalCharge() > 0) {
                 auto pos = conf.getAtomPos(i);
-                features.push_back({Eigen::Vector3d(pos.x, pos.y, pos.z), false, Eigen::Vector3d::Zero()});
+                features.push_back(
+                    {Eigen::Vector3d(pos.x, pos.y, pos.z), false, Eigen::Vector3d::Zero()});
             }
         }
     } else if (type_ == PharmaType::NEGATIVE) {
@@ -70,7 +79,8 @@ std::vector<PharmacophoreProperty::Feature> PharmacophoreProperty::extractFeatur
             auto atom = mol->getAtomWithIdx(i);
             if (atom->getFormalCharge() < 0) {
                 auto pos = conf.getAtomPos(i);
-                features.push_back({Eigen::Vector3d(pos.x, pos.y, pos.z), false, Eigen::Vector3d::Zero()});
+                features.push_back(
+                    {Eigen::Vector3d(pos.x, pos.y, pos.z), false, Eigen::Vector3d::Zero()});
             }
         }
     } else if (type_ == PharmaType::DONOR) {
@@ -79,16 +89,17 @@ std::vector<PharmacophoreProperty::Feature> PharmacophoreProperty::extractFeatur
         for (int idx : donors) {
             auto pos = conf.getAtomPos(idx);
             Eigen::Vector3d center(pos.x, pos.y, pos.z);
-            
+
             bool found_dir = false;
             Eigen::Vector3d dir(0, 0, 0);
-            
+
             for (unsigned int j = 0; j < mol->getNumAtoms(); ++j) {
                 auto other_atom = mol->getAtomWithIdx(j);
                 if (other_atom->getSymbol() == "H") {
                     if (mol->getBondBetweenAtoms(idx, j)) {
                         auto h_pos = conf.getAtomPos(j);
-                        dir += Eigen::Vector3d(h_pos.x - pos.x, h_pos.y - pos.y, h_pos.z - pos.z).normalized();
+                        dir += Eigen::Vector3d(h_pos.x - pos.x, h_pos.y - pos.y, h_pos.z - pos.z)
+                                   .normalized();
                         found_dir = true;
                     }
                 }
@@ -105,11 +116,13 @@ std::vector<PharmacophoreProperty::Feature> PharmacophoreProperty::extractFeatur
         for (int idx : acceptors) {
             auto pos = conf.getAtomPos(idx);
             Eigen::Vector3d center(pos.x, pos.y, pos.z);
-            
+
             std::vector<int> featAtoms = {idx};
             int type = hbond.getAcceptorType(*mol->getAtomWithIdx(idx));
-            
-            std::pair<std::vector<std::pair<RDKitUtils::Vector3D, RDKitUtils::Vector3D>>, std::string> vects;
+
+            std::pair<std::vector<std::pair<RDKitUtils::Vector3D, RDKitUtils::Vector3D>>,
+                      std::string>
+                vects;
             if (type == 1) {
                 vects = RDKitUtils::getAcceptor1FeatVects(conf, featAtoms, 1.0);
             } else if (type == 2) {
@@ -117,7 +130,7 @@ std::vector<PharmacophoreProperty::Feature> PharmacophoreProperty::extractFeatur
             } else {
                 vects = RDKitUtils::getAcceptor3FeatVects(conf, featAtoms, 1.0);
             }
-            
+
             if (!vects.first.empty()) {
                 Eigen::Vector3d dir(0, 0, 0);
                 for (const auto& pair : vects.first) {
@@ -133,30 +146,32 @@ std::vector<PharmacophoreProperty::Feature> PharmacophoreProperty::extractFeatur
             }
         }
     }
-    
+
     return features;
 }
 
-void PharmacophoreProperty::compute(const Surface& surface, std::unordered_map<std::string, std::any>& cache) {
+void PharmacophoreProperty::compute(const Surface& surface,
+                                    std::unordered_map<std::string, std::any>& cache) {
     auto mol = surface.molecule.get_mol();
     if (!mol) {
         throw std::runtime_error("Cannot compute pharmacophore potential: molecule is null");
     }
     auto mol_copy = std::make_shared<RDKit::ROMol>(*mol);
     std::vector<Feature> features = extractFeatures(mol_copy);
-    
+
     std::vector<double> values;
     values.reserve(surface.vertices.size());
-    
+
     for (const auto& vertex_pair : surface.vertices) {
-        Eigen::Vector3d p(vertex_pair.second.second[0], vertex_pair.second.second[1], vertex_pair.second.second[2]);
-        
+        Eigen::Vector3d p(vertex_pair.second.second[0], vertex_pair.second.second[1],
+                          vertex_pair.second.second[2]);
+
         double max_val = 0.0;
         for (const auto& feat : features) {
             double d = (p - feat.position).norm();
             // Faster decay so features don't bleed too much.
             double dist_penalty = std::exp(-0.5 * d * d);
-            
+
             double val = dist_penalty;
             if (feat.has_direction) {
                 Eigen::Vector3d v_to_p = (p - feat.position).normalized();
@@ -167,7 +182,8 @@ void PharmacophoreProperty::compute(const Surface& surface, std::unordered_map<s
                 } else if (type_ == PharmaType::DONOR || type_ == PharmaType::ACCEPTOR) {
                     // Directional preference for H-bonds
                     double angle_align = v_to_p.dot(feat.direction);
-                    if (angle_align < 0) angle_align = 0; // strict forward
+                    if (angle_align < 0)
+                        angle_align = 0;  // strict forward
                     val *= angle_align;
                 }
             }
@@ -175,7 +191,7 @@ void PharmacophoreProperty::compute(const Surface& surface, std::unordered_map<s
         }
         values.push_back(max_val);
     }
-    
+
     std::string key_name = key();
     cache[key_name + "_values"] = values;
     cache[key_name + "_min"] = 0.0;

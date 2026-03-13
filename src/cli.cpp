@@ -39,17 +39,27 @@ void printUsage(const char* program_name) {
     std::cout << "  --density D       Surface density (default: 3.0)" << std::endl;
     std::cout << "  --hdensity H      High density (default: 3.0)" << std::endl;
     std::cout << "  --type T          Surface type: tses or ases (default: tses)" << std::endl;
-    std::cout << "  --mesh M          Surface method: msms, fibonacci (default: fibonacci)" << std::endl;
-    std::cout << "  --sample-method S Vertex sampling method: full, fps, random (default: full)" << std::endl;
-    std::cout << "  --top-n N          Save only the top N best aligned conformers (default: all)" << std::endl;
-    std::cout << "  --properties P    Surface properties to compute (default: esp,hydrophobicity,hbond,none):"
-        << std::endl;
+    std::cout << "  --mesh M          Surface method: msms, fibonacci (default: fibonacci)"
+              << std::endl;
+    std::cout << "  --sample-method S Vertex sampling method: full, fps, random (default: full)"
+              << std::endl;
+    std::cout << "  --top-n N          Save only the top N best aligned conformers (default: all)"
+              << std::endl;
+    std::cout << "  --properties P    Surface properties to compute (default: "
+                 "esp,hydrophobicity,hbond,none):"
+              << std::endl;
     std::cout << "                      - esp: Electrostatic potential" << std::endl;
-    std::cout << "                      - hb: Hydrogen bond potential (abbreviation for hbond)" << std::endl;
-    std::cout << "                      - hy: Hydrophobicity values (abbreviation for hydrophobicity)" << std::endl;
+    std::cout << "                      - hb: Hydrogen bond potential (abbreviation for hbond)"
+              << std::endl;
+    std::cout
+        << "                      - hy: Hydrophobicity values (abbreviation for hydrophobicity)"
+        << std::endl;
     std::cout << "                      - hbond: Hydrogen bond potential (full name)" << std::endl;
-    std::cout << "                      - hydrophobicity: Hydrophobicity values (full name)" << std::endl;
-    std::cout << "                      - pharmacophore (or pharma): 3D Pharmacophore graph properties" << std::endl;
+    std::cout << "                      - hydrophobicity: Hydrophobicity values (full name)"
+              << std::endl;
+    std::cout
+        << "                      - pharmacophore (or pharma): 3D Pharmacophore graph properties"
+        << std::endl;
     std::cout << "                      - all: Compute all available properties" << std::endl;
     std::cout << "                      - Comma-separated list: esp,hydrophobicity" << std::endl;
     std::cout << "                      - none: Skip property computation" << std::endl;
@@ -60,21 +70,21 @@ void printUsage(const char* program_name) {
     std::cout << "  --include-normals Include normal vectors in output (default: false)"
               << std::endl;
     std::cout << "  --conformers N    Number of conformers to align (default: 1)" << std::endl;
-    std::cout << "  --sample M        Number of conformers to sample from (default: 1)." << std::endl;
-    std::cout << "                      If M > N, diverse conformers are selected via clustering." << std::endl;
-    std::cout
-        << "  --use-advanced    Use advanced conformer generation (alias for --sample 50)" << std::endl;
+    std::cout << "  --sample M        Number of conformers to sample from (default: 1)."
+              << std::endl;
+    std::cout << "                      If M > N, diverse conformers are selected via clustering."
+              << std::endl;
+    std::cout << "  --use-advanced    Use advanced conformer generation (alias for --sample 50)"
+              << std::endl;
     std::cout
         << "  --random-seed N   Random seed for reproducible conformer generation (default: 4)"
         << std::endl;
     std::cout
         << "  --save-meshes     Save individual mesh files for each conformer (default: false)"
         << std::endl;
-    std::cout
-        << "  --charge-method M Charge calculation method for ESP (default: rdkit):"
-        << std::endl;
-    std::cout << "                      - rdkit: Fast Gasteiger charges (built-in)"
+    std::cout << "  --charge-method M Charge calculation method for ESP (default: rdkit):"
               << std::endl;
+    std::cout << "                      - rdkit: Fast Gasteiger charges (built-in)" << std::endl;
     std::cout << "                      - xtb: Quantum chemistry charges (requires xtb program)"
               << std::endl;
     std::cout << "  --addH            Add explicit hydrogens to molecules (default: true)"
@@ -92,8 +102,8 @@ void printUsage(const char* program_name) {
               << " reference.sdf multi_molecules.sdf ./output/ --vertices 2000" << std::endl;
     std::cout << "  " << program_name << " reference.sdf input.sdf ./output/ --properties all"
               << std::endl;
-    std::cout << "  " << program_name
-              << " reference.sdf input.sdf ./output/ --properties esp,hy,hb" << std::endl;
+    std::cout << "  " << program_name << " reference.sdf input.sdf ./output/ --properties esp,hy,hb"
+              << std::endl;
     std::cout << "  " << program_name << " reference.sdf input.sdf ./output/ --properties none"
               << std::endl;
     std::cout << "  " << program_name
@@ -101,30 +111,28 @@ void printUsage(const char* program_name) {
               << std::endl;
     std::cout << "  " << program_name << " reference.sdf input.sdf ./output/ --output-type points"
               << std::endl;
-    std::cout << "  " << program_name << " reference.sdf \"CCO\" ./output/ --conformers 5 --save-meshes"
-              << std::endl;
-    std::cout << "  " << program_name << " reference.sdf smiles.txt ./output/ --conformers 2"
-          << std::endl;
-    std::cout
-    << "  " << program_name
-    << " reference.sdf \"CCO\" ./output/ --sample 100 --conformers 8"
-    << std::endl;
     std::cout << "  " << program_name
-          << " reference.sdf \"CCO\" ./output/ --use-advanced --random-seed 42 --save-meshes"
-          << std::endl;
+              << " reference.sdf \"CCO\" ./output/ --conformers 5 --save-meshes" << std::endl;
+    std::cout << "  " << program_name << " reference.sdf smiles.txt ./output/ --conformers 2"
+              << std::endl;
+    std::cout << "  " << program_name
+              << " reference.sdf \"CCO\" ./output/ --sample 100 --conformers 8" << std::endl;
+    std::cout << "  " << program_name
+              << " reference.sdf \"CCO\" ./output/ --use-advanced --random-seed 42 --save-meshes"
+              << std::endl;
     std::cout << "  " << program_name
               << " reference.sdf \"CCO\" ./output/ --charge-method xtb --properties esp"
               << std::endl;
     std::cout << "  " << program_name
-              << " reference.sdf \"CCO\" ./output/ --removeH --properties hb"
-              << std::endl;
+              << " reference.sdf \"CCO\" ./output/ --removeH --properties hb" << std::endl;
 }
 
 std::vector<std::string> parseProperties(const std::string& properties_str) {
     std::vector<std::string> properties;
 
     if (properties_str == "all") {
-        properties = {"esp", "hydrophobicity", "hbond", "pharma_aromatic", "pharma_pos", "pharma_neg", "pharma_donor", "pharma_acceptor"};
+        properties = {"esp",        "hydrophobicity", "hbond",        "pharma_aromatic",
+                      "pharma_pos", "pharma_neg",     "pharma_donor", "pharma_acceptor"};
     } else if (properties_str == "none") {
         properties = {};  // Empty vector means no properties
     } else {
@@ -163,11 +171,11 @@ std::vector<std::string> parseProperties(const std::string& properties_str) {
 
 SurfaceParams parseSurfaceParams(int argc, char* argv[], int& start_index) {
     SurfaceParams params;
-    
+
     // Default to 1 conformer for CLI if not specified
     params.conformer_params.num_clusters = 1;
     params.conformer_params.total_conformers = 1;
-    
+
     // Track parameter usage for conflict detection
     bool total_confs_specified = false;
 
@@ -191,7 +199,9 @@ SurfaceParams parseSurfaceParams(int argc, char* argv[], int& start_index) {
             } else if (mesh == "fib" || mesh == "f" || mesh == "fibonacci") {
                 params.program = "fibonacci";
             } else {
-                std::cerr << "Error: Invalid mesh method '" << mesh << "'. Must be 'msms'[, 'm', 'ms'], 'fibonacci'[, 'f', or 'fib']." << std::endl;
+                std::cerr << "Error: Invalid mesh method '" << mesh
+                          << "'. Must be 'msms'[, 'm', 'ms'], 'fibonacci'[, 'f', or 'fib']."
+                          << std::endl;
                 return SurfaceParams{};
             }
         } else if (arg == "--sample-method" && start_index + 1 < argc) {
@@ -199,7 +209,8 @@ SurfaceParams parseSurfaceParams(int argc, char* argv[], int& start_index) {
             if (method == "full" || method == "fps" || method == "random") {
                 params.sample_method = method;
             } else {
-                std::cerr << "Error: Invalid sample method '" << method << "'. Must be 'full', 'fps', or 'random'." << std::endl;
+                std::cerr << "Error: Invalid sample method '" << method
+                          << "'. Must be 'full', 'fps', or 'random'." << std::endl;
                 return SurfaceParams{};
             }
         } else if (arg == "--top-n" && start_index + 1 < argc) {
@@ -249,7 +260,7 @@ SurfaceParams parseSurfaceParams(int argc, char* argv[], int& start_index) {
             } else if (method == "rdkit") {
                 params.charge_method = ChargeMethod::RDKIT;
             } else {
-                std::cerr << "Warning: Invalid charge method '" << method 
+                std::cerr << "Warning: Invalid charge method '" << method
                           << "'. Must be 'xtb' or 'rdkit'. Using default 'rdkit'." << std::endl;
                 params.charge_method = ChargeMethod::RDKIT;
             }
@@ -263,15 +274,18 @@ SurfaceParams parseSurfaceParams(int argc, char* argv[], int& start_index) {
 
         ++start_index;
     }
-    
+
     // Final validation and info
     if (params.conformer_params.enable_optimization) {
         std::cerr << "Info: Conformer selection enabled (Clustering):" << std::endl;
-        std::cerr << "  - Final conformers to align: " << params.conformer_params.num_clusters << std::endl;
-        std::cerr << "  - Sampling from pool size: " << params.conformer_params.total_conformers << std::endl;
+        std::cerr << "  - Final conformers to align: " << params.conformer_params.num_clusters
+                  << std::endl;
+        std::cerr << "  - Sampling from pool size: " << params.conformer_params.total_conformers
+                  << std::endl;
     } else if (params.conformer_params.num_clusters > 1) {
         std::cerr << "Info: Multiple conformer generation enabled:" << std::endl;
-        std::cerr << "  - Generating and aligning " << params.conformer_params.num_clusters << " conformers" << std::endl;
+        std::cerr << "  - Generating and aligning " << params.conformer_params.num_clusters
+                  << " conformers" << std::endl;
     }
 
     return params;
@@ -351,8 +365,7 @@ std::vector<std::string> getMoleculeFiles(const std::string& dir_path) {
     return files;
 }
 
-Molecule loadMolecule(const std::string& source,
-                      const SurfaceParams& surface_params) {
+Molecule loadMolecule(const std::string& source, const SurfaceParams& surface_params) {
     if (std::filesystem::exists(source)) {
         std::string ext = source.substr(source.find_last_of('.') + 1);
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
@@ -362,14 +375,14 @@ Molecule loadMolecule(const std::string& source,
             return mol;
         } else if (ext == "txt") {
             // For text files, assume they contain SMILES strings and load the first one
-            std::vector<std::pair<std::string, std::string>> smiles_list = loadSmilesFromFile(source);
+            std::vector<std::pair<std::string, std::string>> smiles_list =
+                loadSmilesFromFile(source);
             if (!smiles_list.empty()) {
                 Molecule mol(smiles_list[0].first.c_str());
                 if (!smiles_list[0].second.empty()) {
                     mol.set_name(smiles_list[0].second);
                 }
                 if (mol.get_mol() != nullptr) {
-                    
                     if (surface_params.conformer_params.enable_optimization) {
                         // Use advanced conformer generation
                         mol.generateAdvancedConformers(surface_params.conformer_params);
@@ -391,7 +404,6 @@ Molecule loadMolecule(const std::string& source,
         // For SMILES strings, create molecule and regenerate conformers with specified number
         Molecule mol(source.c_str());
         if (mol.get_mol() != nullptr) {
-            
             if (surface_params.conformer_params.enable_optimization) {
                 // Use advanced conformer generation
                 mol.generateAdvancedConformers(surface_params.conformer_params);
@@ -404,7 +416,8 @@ Molecule loadMolecule(const std::string& source,
     }
 }
 
-void computeProperty(Molecule& mol, int conformer_id, const std::string& property_name, const SurfaceParams& params) {
+void computeProperty(Molecule& mol, int conformer_id, const std::string& property_name,
+                     const SurfaceParams& params) {
     try {
         // Convert CLI SurfaceParams to Molecule SurfaceParams
         SurfaceParams mol_params;
@@ -421,8 +434,8 @@ void computeProperty(Molecule& mol, int conformer_id, const std::string& propert
         mol_params.top_n = params.top_n;
         mol_params.conformer_params = params.conformer_params;
         mol_params.save_meshes = params.save_meshes;
-        mol_params.charge_method = params.charge_method; // Pass the charge method
-        
+        mol_params.charge_method = params.charge_method;  // Pass the charge method
+
         mol.compute(property_name, conformer_id, mol_params);
         if (property_name == "esp") {
             // Get the ESP results
@@ -507,14 +520,15 @@ void computeProperty(Molecule& mol, int conformer_id, const std::string& propert
 void alignMolecule(Molecule& reference_mol, Molecule& input_mol, const std::string& output_dir,
                    const SurfaceParams& params, const std::string& input_name) {
     // Create reference surface
-    int ref_conformer_id =
-        reference_mol.createSurface(0, params.num_vertices, params.radius, params.density,
-                                    params.hdensity, params.type, params.program, params.sample_method, params.addH);
+    int ref_conformer_id = reference_mol.createSurface(
+        0, params.num_vertices, params.radius, params.density, params.hdensity, params.type,
+        params.program, params.sample_method, params.addH);
 
     // Check if this is a SMILES molecule (multiple conformers)
     bool is_smiles_molecule = input_mol.getNumConformers() > 1;
 
-    if ((is_smiles_molecule && params.conformer_params.num_clusters > 1) || params.conformer_params.enable_optimization) {
+    if ((is_smiles_molecule && params.conformer_params.num_clusters > 1) ||
+        params.conformer_params.enable_optimization) {
         // Multi-conformer alignment for SMILES molecules
         std::cout << "\n=== Multi-Conformer Alignment ===" << std::endl;
         std::cout << "Processing " << input_mol.getNumConformers() << " conformers..." << std::endl;
@@ -523,11 +537,10 @@ void alignMolecule(Molecule& reference_mol, Molecule& input_mol, const std::stri
 
         // Process each conformer
         for (int conf_id = 0; conf_id < static_cast<int>(input_mol.getNumConformers()); ++conf_id) {
-
             // Create surface for this conformer
-            int input_conformer_id =
-                input_mol.createSurface(conf_id, params.num_vertices, params.radius, params.density,
-                                        params.hdensity, params.type, params.program, params.sample_method, params.addH);
+            int input_conformer_id = input_mol.createSurface(
+                conf_id, params.num_vertices, params.radius, params.density, params.hdensity,
+                params.type, params.program, params.sample_method, params.addH);
 
             // Compute requested surface properties BEFORE alignment (for both molecules)
             if (!params.properties.empty()) {
@@ -548,16 +561,18 @@ void alignMolecule(Molecule& reference_mol, Molecule& input_mol, const std::stri
             // cache)
             input_mol.transformSurface(input_conformer_id, alignment_result.transformation);
 
-            // Save individual mesh files with temporary names (BEFORE conformer transformation invalidates surface cache)
+            // Save individual mesh files with temporary names (BEFORE conformer transformation
+            // invalidates surface cache)
             if (params.save_meshes) {
                 std::string temp_surface_filename = output_dir + "/" + input_name + "_temp_conf" +
-                                                   std::to_string(conf_id) + "_surface.ply";
+                                                    std::to_string(conf_id) + "_surface.ply";
                 if (params.output_type == "mesh") {
                     input_mol.saveSurfaceMesh(input_conformer_id, temp_surface_filename,
                                               params.include_normals, true, params.properties);
                 } else {
                     input_mol.saveSurfacePointCloud(input_conformer_id, temp_surface_filename,
-                                                    params.include_normals, true, params.properties);
+                                                    params.include_normals, true,
+                                                    params.properties);
                 }
             }
 
@@ -573,21 +588,21 @@ void alignMolecule(Molecule& reference_mol, Molecule& input_mol, const std::stri
             // std::cout << "    RMSE: " << std::fixed << std::setprecision(6)
             //           << alignment_result.inlier_rmse << std::endl;
             // std::cout << "    Used Colored ICP: "
-                    //   << (alignment_result.used_colored_icp ? "Yes" : "No") << std::endl;
+            //   << (alignment_result.used_colored_icp ? "Yes" : "No") << std::endl;
         }
 
         // Sort conformers by fitness (higher is better) - ALWAYS sort regardless of top_n
         std::sort(conformer_results.begin(), conformer_results.end(),
-                 [](const std::pair<int, Molecule::AlignmentResult>& a,
-                    const std::pair<int, Molecule::AlignmentResult>& b) {
-                     return a.second.fitness > b.second.fitness;  // Higher fitness is better
-                 });
-        
+                  [](const std::pair<int, Molecule::AlignmentResult>& a,
+                     const std::pair<int, Molecule::AlignmentResult>& b) {
+                      return a.second.fitness > b.second.fitness;  // Higher fitness is better
+                  });
+
         // Keep only top N conformers if specified
         if (params.top_n > 0) {
             if (static_cast<int>(conformer_results.size()) > params.top_n) {
                 conformer_results.resize(params.top_n);
-                std::cout << "\n✓ Kept top " << params.top_n << " conformers out of " 
+                std::cout << "\n✓ Kept top " << params.top_n << " conformers out of "
                           << input_mol.getNumConformers() << " total" << std::endl;
             }
         }
@@ -597,32 +612,33 @@ void alignMolecule(Molecule& reference_mol, Molecule& input_mol, const std::stri
             for (size_t rank = 0; rank < conformer_results.size(); ++rank) {
                 int conf_id = conformer_results[rank].first;
                 double fitness = conformer_results[rank].second.fitness;
-                
+
                 // Create new filename with rank and fitness: e.g., "imatinib_simi_rank1_f841.ply"
-                std::string new_surface_filename = output_dir + "/" + input_name + "_rank" + 
-                                                 std::to_string(rank + 1) + "_f" + 
-                                                 std::to_string(static_cast<int>(fitness * 1000)) + ".ply";
-                
+                std::string new_surface_filename =
+                    output_dir + "/" + input_name + "_rank" + std::to_string(rank + 1) + "_f" +
+                    std::to_string(static_cast<int>(fitness * 1000)) + ".ply";
+
                 // Rename the temporary file
                 std::string temp_surface_filename = output_dir + "/" + input_name + "_temp_conf" +
-                                                   std::to_string(conf_id) + "_surface.ply";
-                
+                                                    std::to_string(conf_id) + "_surface.ply";
+
                 if (std::rename(temp_surface_filename.c_str(), new_surface_filename.c_str()) != 0) {
-                    std::cerr << "Warning: Could not rename " << temp_surface_filename << " to " << new_surface_filename << std::endl;
+                    std::cerr << "Warning: Could not rename " << temp_surface_filename << " to "
+                              << new_surface_filename << std::endl;
                 }
             }
-            
+
             // Clean up any remaining temporary files for conformers not in top N
-            for (int conf_id = 0; conf_id < static_cast<int>(input_mol.getNumConformers()); ++conf_id) {
+            for (int conf_id = 0; conf_id < static_cast<int>(input_mol.getNumConformers());
+                 ++conf_id) {
                 std::string temp_surface_filename = output_dir + "/" + input_name + "_temp_conf" +
-                                                   std::to_string(conf_id) + "_surface.ply";
+                                                    std::to_string(conf_id) + "_surface.ply";
                 std::remove(temp_surface_filename.c_str());
             }
         }
 
         // Save all conformers with alignment scores to a single SDF file
-        std::string conformer_filename =
-            output_dir + "/" + input_name + "_aligned.sdf";
+        std::string conformer_filename = output_dir + "/" + input_name + "_aligned.sdf";
         input_mol.saveMultiConformerSDF(conformer_results, conformer_filename, true);
         std::cout << "\n✓ Multi-conformer SDF saved: " << conformer_filename << std::endl;
 
@@ -638,9 +654,9 @@ void alignMolecule(Molecule& reference_mol, Molecule& input_mol, const std::stri
 
     } else {
         // Single conformer alignment (original behavior)
-        int input_conformer_id =
-            input_mol.createSurface(0, params.num_vertices, params.radius, params.density,
-                                    params.hdensity, params.type, params.program, params.sample_method, params.addH);
+        int input_conformer_id = input_mol.createSurface(
+            0, params.num_vertices, params.radius, params.density, params.hdensity, params.type,
+            params.program, params.sample_method, params.addH);
 
         // Compute requested surface properties BEFORE alignment (for both molecules)
         if (!params.properties.empty()) {
@@ -674,16 +690,17 @@ void alignMolecule(Molecule& reference_mol, Molecule& input_mol, const std::stri
         // cache) - only if --save-meshes is specified
         if (params.save_meshes) {
             if (params.output_type == "mesh") {
-                input_mol.saveSurfaceMesh(input_conformer_id, surface_filename, params.include_normals,
-                                          true, params.properties);
-                reference_mol.saveSurfaceMesh(ref_conformer_id, output_dir + "/reference_surface.ply",
+                input_mol.saveSurfaceMesh(input_conformer_id, surface_filename,
+                                          params.include_normals, true, params.properties);
+                reference_mol.saveSurfaceMesh(ref_conformer_id,
+                                              output_dir + "/reference_surface.ply",
                                               params.include_normals, true, params.properties);
             } else {
                 input_mol.saveSurfacePointCloud(input_conformer_id, surface_filename,
                                                 params.include_normals, true, params.properties);
-                reference_mol.saveSurfacePointCloud(ref_conformer_id,
-                                                    output_dir + "/reference_surface.ply",
-                                                    params.include_normals, true, params.properties);
+                reference_mol.saveSurfacePointCloud(
+                    ref_conformer_id, output_dir + "/reference_surface.ply", params.include_normals,
+                    true, params.properties);
             }
         }
 
@@ -721,7 +738,8 @@ int main(int argc, char* argv[]) {
         reference_mol.saveConformerSDF(0, output_dir + "/reference_conformer.sdf", true);
         reference_mol.createSurface(0, surface_params.num_vertices, surface_params.radius,
                                     surface_params.density, surface_params.hdensity,
-                                    surface_params.type, surface_params.program, surface_params.sample_method, surface_params.addH);
+                                    surface_params.type, surface_params.program,
+                                    surface_params.sample_method, surface_params.addH);
 
         if (std::filesystem::is_directory(input_source)) {
 #ifdef DEBUG
@@ -773,7 +791,8 @@ int main(int argc, char* argv[]) {
 #endif
 
                 try {
-                    std::vector<std::pair<std::string, std::string>> smiles_list = loadSmilesFromFile(input_source);
+                    std::vector<std::pair<std::string, std::string>> smiles_list =
+                        loadSmilesFromFile(input_source);
                     std::string base_name = std::filesystem::path(input_source).stem().string();
 
 #ifdef DEBUG
@@ -787,8 +806,7 @@ int main(int argc, char* argv[]) {
                         try {
                             // Use loadMolecule to properly handle both simple and advanced
                             // conformer generation
-                            Molecule input_mol =
-                                loadMolecule(smiles_list[i].first, surface_params);
+                            Molecule input_mol = loadMolecule(smiles_list[i].first, surface_params);
 
                             if (!smiles_list[i].second.empty()) {
                                 input_mol.set_name(smiles_list[i].second);

@@ -65,11 +65,11 @@ void HydrophobicityProperty::compute(const Surface& surface,
         // Compute statistics for display
         if (!hydrophobicity_values.empty()) {
             double avg_hyd =
-            std::accumulate(hydrophobicity_values.begin(), hydrophobicity_values.end(), 0.0) /
-            hydrophobicity_values.size();
-            
+                std::accumulate(hydrophobicity_values.begin(), hydrophobicity_values.end(), 0.0) /
+                hydrophobicity_values.size();
+
             cache["hydrophobicity_avg"] = avg_hyd;
-            #ifdef DEBUG
+#ifdef DEBUG
             double min_hyd =
                 *std::min_element(hydrophobicity_values.begin(), hydrophobicity_values.end());
             double max_hyd =
