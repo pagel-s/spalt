@@ -25,8 +25,9 @@ jobs:
           librdkit-dev \
           rdkit-data \
           lcov \
-          gcov
-        pip install open3d
+          gcov \
+          python3-pip
+        pip3 install open3d
 
     - name: Configure CMake with coverage
       run: |
@@ -67,7 +68,7 @@ jobs:
         fail_ci_if_error: false
 
     - name: Archive coverage reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: build/coverage_html/
