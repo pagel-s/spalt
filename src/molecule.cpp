@@ -14,6 +14,7 @@
 #include "props/esp.h"
 #include "props/hbond.h"
 #include "props/hydrophobicity.h"
+#include "props/pharmacophore.h"
 #include "props/property_params.h"
 #include "surface.h"
 
@@ -773,6 +774,13 @@ void Molecule::registerDefaultProperties() {
     // Register hydrogen bond property
     registerProperty("hbond", []() { return std::make_unique<HBondProperty>(); });
 
+    // Register pharmacophore properties
+    registerProperty("pharma_aromatic", []() { return std::make_unique<PharmacophoreProperty>(PharmaType::AROMATIC); });
+    registerProperty("pharma_pos", []() { return std::make_unique<PharmacophoreProperty>(PharmaType::POSITIVE); });
+    registerProperty("pharma_neg", []() { return std::make_unique<PharmacophoreProperty>(PharmaType::NEGATIVE); });
+    registerProperty("pharma_donor", []() { return std::make_unique<PharmacophoreProperty>(PharmaType::DONOR); });
+    registerProperty("pharma_acceptor", []() { return std::make_unique<PharmacophoreProperty>(PharmaType::ACCEPTOR); });
+
     // Future properties can be registered here:
     // registerProperty("hydrophobicity", []() { return
     // std::make_unique<SurfaceHydrophobicityProperty>(); }); registerProperty("electrostatics",
@@ -787,6 +795,13 @@ void Molecule::registerAllProperties() {
     registerProperty("hydrophobicity", []() { return std::make_unique<HydrophobicityProperty>(); });
 
     registerProperty("hbond", []() { return std::make_unique<HBondProperty>(); });
+    
+    // Register pharmacophore properties
+    registerProperty("pharma_aromatic", []() { return std::make_unique<PharmacophoreProperty>(PharmaType::AROMATIC); });
+    registerProperty("pharma_pos", []() { return std::make_unique<PharmacophoreProperty>(PharmaType::POSITIVE); });
+    registerProperty("pharma_neg", []() { return std::make_unique<PharmacophoreProperty>(PharmaType::NEGATIVE); });
+    registerProperty("pharma_donor", []() { return std::make_unique<PharmacophoreProperty>(PharmaType::DONOR); });
+    registerProperty("pharma_acceptor", []() { return std::make_unique<PharmacophoreProperty>(PharmaType::ACCEPTOR); });
 }
 
 std::vector<std::string> Molecule::getRegisteredProperties() const {

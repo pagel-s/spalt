@@ -26,6 +26,7 @@ add_executable(spalt_tests
   test_normals_usage.cpp
   test_segfault_fixes.cpp
   test_tsv_parsing.cpp
+  test_pharmacophore.cpp
 )
 
 # Give the tests access to headers in src/
@@ -40,6 +41,7 @@ target_include_directories(spalt_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
    ${CMAKE_SOURCE_DIR}/src/props/esp.cpp
    ${CMAKE_SOURCE_DIR}/src/props/hydrophobicity.cpp
    ${CMAKE_SOURCE_DIR}/src/props/hbond.cpp
+   ${CMAKE_SOURCE_DIR}/src/props/pharmacophore.cpp
    ${CMAKE_SOURCE_DIR}/src/props/rdkit_utils.cpp
    ${CMAKE_SOURCE_DIR}/src/props/property_params.cpp
    ${CMAKE_SOURCE_DIR}/src/conformer_generator.cpp

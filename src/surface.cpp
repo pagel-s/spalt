@@ -351,14 +351,6 @@ void Surface::computeProperty(const std::string& key) {
     it->second->compute(*this, cache_);
 }
 
-template <typename T>
-const T& Surface::getProperty(const std::string& key) const {
-    auto it = cache_.find(key);
-    if (it == cache_.end())
-        throw std::runtime_error("Property not computed: " + key);
-    return std::any_cast<const T&>(it->second);
-}
-
 void Surface::invalidateProperties() {
     cache_.clear();
 }

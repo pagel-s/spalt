@@ -42,14 +42,14 @@ void printUsage(const char* program_name) {
     std::cout << "  --mesh M          Surface method: msms, fibonacci (default: fibonacci)" << std::endl;
     std::cout << "  --sample-method S Vertex sampling method: full, fps, random (default: full)" << std::endl;
     std::cout << "  --top-n N          Save only the top N best aligned conformers (default: all)" << std::endl;
-    std::cout
-        << "  --properties P    Surface properties to compute (default: esp,hydrophobicity,hbond,none):"
+    std::cout << "  --properties P    Surface properties to compute (default: esp,hydrophobicity,hbond,none):"
         << std::endl;
     std::cout << "                      - esp: Electrostatic potential" << std::endl;
     std::cout << "                      - hb: Hydrogen bond potential (abbreviation for hbond)" << std::endl;
     std::cout << "                      - hy: Hydrophobicity values (abbreviation for hydrophobicity)" << std::endl;
     std::cout << "                      - hbond: Hydrogen bond potential (full name)" << std::endl;
     std::cout << "                      - hydrophobicity: Hydrophobicity values (full name)" << std::endl;
+    std::cout << "                      - pharmacophore (or pharma): 3D Pharmacophore graph properties" << std::endl;
     std::cout << "                      - all: Compute all available properties" << std::endl;
     std::cout << "                      - Comma-separated list: esp,hydrophobicity" << std::endl;
     std::cout << "                      - none: Skip property computation" << std::endl;
@@ -124,7 +124,7 @@ std::vector<std::string> parseProperties(const std::string& properties_str) {
     std::vector<std::string> properties;
 
     if (properties_str == "all") {
-        properties = {"esp", "hydrophobicity", "hbond"};
+        properties = {"esp", "hydrophobicity", "hbond", "pharma_aromatic", "pharma_pos", "pharma_neg", "pharma_donor", "pharma_acceptor"};
     } else if (properties_str == "none") {
         properties = {};  // Empty vector means no properties
     } else {
@@ -144,6 +144,12 @@ std::vector<std::string> parseProperties(const std::string& properties_str) {
                     properties.push_back("hbond");
                 } else if (property == "hy") {
                     properties.push_back("hydrophobicity");
+                } else if (property == "pharmacophore" || property == "pharma") {
+                    properties.push_back("pharma_aromatic");
+                    properties.push_back("pharma_pos");
+                    properties.push_back("pharma_neg");
+                    properties.push_back("pharma_donor");
+                    properties.push_back("pharma_acceptor");
                 } else {
                     // Use the property name as-is (supports full names too)
                     properties.push_back(property);

@@ -156,7 +156,12 @@ public:
      * @throws std::runtime_error if property has not been computed
      * @throws std::bad_any_cast if property type doesn't match T
      */
-    template<typename T> const T& getProperty(const std::string& key) const;
+    template<typename T> const T& getProperty(const std::string& key) const {
+        auto it = cache_.find(key);
+        if (it == cache_.end())
+            throw std::runtime_error("Property not computed: " + key);
+        return std::any_cast<const T&>(it->second);
+    }
     
     /**
      * @brief Invalidate all cached surface properties
