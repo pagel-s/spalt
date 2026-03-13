@@ -28,6 +28,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set up Miniconda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        python-version: "3.10"
+
     - name: Set up build environment
       run: |
         sudo apt-get update
@@ -35,15 +41,15 @@ jobs:
           build-essential \
           cmake \
           libeigen3-dev \
-          libboost-all-dev \
-          python3-dev \
-          python3-pip
+          libboost-all-dev
 
     - name: Install RDKit
+      shell: bash -l {0}
       run: |
         conda install -c conda-forge rdkit -y
 
     - name: Install Open3D
+      shell: bash -l {0}
       run: |
         pip install open3d
 
@@ -52,6 +58,7 @@ jobs:
         sudo apt-get install -y msms || echo "MSMS not available, will use fallback"
 
     - name: Configure CMake
+      shell: bash -l {0}
       run: |
         mkdir build
         cd build
@@ -87,7 +94,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set up Miniconda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        python-version: "3.10"
+
     - name: Set up build environment
+      shell: bash -l {0}
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -95,13 +109,18 @@ jobs:
           cmake \
           clang-format \
           clang-tidy \
-          cppcheck
+          cppcheck \
+          libeigen3-dev \
+          libboost-all-dev
+        conda install -c conda-forge rdkit -y
+        pip install open3d
 
     - name: Code formatting check
       run: |
         find src/ tests/ -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror
 
     - name: Static analysis
+      shell: bash -l {0}
       run: |
         mkdir build
         cd build
@@ -116,16 +135,28 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set up Miniconda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        python-version: "3.10"
+
     - name: Set up build environment
+      shell: bash -l {0}
       run: |
         sudo apt-get update
         sudo apt-get install -y \
           build-essential \
           cmake \
           doxygen \
-          graphviz
+          graphviz \
+          libeigen3-dev \
+          libboost-all-dev
+        conda install -c conda-forge rdkit -y
+        pip install open3d
 
     - name: Generate documentation
+      shell: bash -l {0}
       run: |
         mkdir build
         cd build
