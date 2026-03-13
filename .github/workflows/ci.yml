@@ -35,7 +35,7 @@ jobs:
 
     - name: Install Open3D
       run: |
-        pip3 install open3d --break-system-packages
+        sudo apt-get install -y libopen3d-dev
 
     - name: Install MSMS (optional)
       run: |
@@ -91,7 +91,7 @@ jobs:
           librdkit-dev \
           rdkit-data \
           python3-pip
-        pip3 install open3d --break-system-packages
+        sudo apt-get install -y libopen3d-dev
 
     - name: Code formatting check
       run: |
@@ -126,7 +126,7 @@ jobs:
           librdkit-dev \
           rdkit-data \
           python3-pip
-        pip3 install open3d --break-system-packages
+        sudo apt-get install -y libopen3d-dev
 
     - name: Generate documentation
       shell: bash -el {0}
