@@ -32,13 +32,13 @@ jobs:
           gcov
 
     - name: Install dependencies
-      shell: bash -l {0}
+      shell: bash -el {0}
       run: |
         conda install -c conda-forge rdkit -y
         pip install open3d
 
     - name: Configure CMake with coverage
-      shell: bash -l {0}
+      shell: bash -el {0}
       run: |
         mkdir build
         cd build

@@ -44,12 +44,12 @@ jobs:
           libboost-all-dev
 
     - name: Install RDKit
-      shell: bash -l {0}
+      shell: bash -el {0}
       run: |
         conda install -c conda-forge rdkit -y
 
     - name: Install Open3D
-      shell: bash -l {0}
+      shell: bash -el {0}
       run: |
         pip install open3d
 
@@ -58,7 +58,7 @@ jobs:
         sudo apt-get install -y msms || echo "MSMS not available, will use fallback"
 
     - name: Configure CMake
-      shell: bash -l {0}
+      shell: bash -el {0}
       run: |
         mkdir build
         cd build
@@ -101,7 +101,7 @@ jobs:
         python-version: "3.10"
 
     - name: Set up build environment
-      shell: bash -l {0}
+      shell: bash -el {0}
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -120,7 +120,7 @@ jobs:
         find src/ tests/ -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror
 
     - name: Static analysis
-      shell: bash -l {0}
+      shell: bash -el {0}
       run: |
         mkdir build
         cd build
@@ -142,7 +142,7 @@ jobs:
         python-version: "3.10"
 
     - name: Set up build environment
-      shell: bash -l {0}
+      shell: bash -el {0}
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -156,7 +156,7 @@ jobs:
         pip install open3d
 
     - name: Generate documentation
-      shell: bash -l {0}
+      shell: bash -el {0}
       run: |
         mkdir build
         cd build
