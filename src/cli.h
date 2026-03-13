@@ -37,17 +37,6 @@ class CLI {
     static void printVersion();
 
     /**
-     * @brief Parse surface parameters from command line arguments
-     *
-     * @param argc Number of command line arguments
-     * @param argv Array of command line argument strings
-     * @param start_index Index to start parsing from (will be updated to point after parsed
-     * arguments)
-     * @return SurfaceParams struct with parsed parameters and defaults for unspecified options
-     */
-    static SurfaceParams parseSurfaceParams(int argc, char* argv[], int& start_index);
-
-    /**
      * @brief Surface generation parameters for CLI operations
      *
      * Parameter structure for command-line interface operations.
@@ -91,6 +80,17 @@ class CLI {
         // Hydrogen control parameters
         bool addH = true;  ///< Whether to add explicit hydrogens to molecules (default: true)
     };
+
+    /**
+     * @brief Parse surface parameters from command line arguments
+     *
+     * @param argc Number of command line arguments
+     * @param argv Array of command line argument strings
+     * @param start_index Index to start parsing from (will be updated to point after parsed
+     * arguments)
+     * @return SurfaceParams struct with parsed parameters and defaults for unspecified options
+     */
+    static SurfaceParams parseSurfaceParams(int argc, char* argv[], int& start_index);
 
   private:
     /**
