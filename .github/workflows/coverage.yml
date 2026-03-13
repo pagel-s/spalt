@@ -14,12 +14,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Miniconda
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
-        python-version: "3.10"
-
     - name: Set up build environment
       run: |
         sudo apt-get update
@@ -28,17 +22,13 @@ jobs:
           cmake \
           libeigen3-dev \
           libboost-all-dev \
+          librdkit-dev \
+          rdkit-data \
           lcov \
           gcov
-
-    - name: Install dependencies
-      shell: bash -el {0}
-      run: |
-        conda install -c conda-forge rdkit -y
         pip install open3d
 
     - name: Configure CMake with coverage
-      shell: bash -el {0}
       run: |
         mkdir build
         cd build
