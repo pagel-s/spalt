@@ -18,7 +18,7 @@ A C++ library for generating molecular surfaces from SMILES strings or coordinat
 ## Features
 
 - **Molecular Surface Generation**: MSMS and Fibonacci sphere surface generation
-- **Surface Properties**: Electrostatic potential (ESP), hydrophobicity, hydrogen bond potential
+- **Surface Properties**: Electrostatic potential (ESP), hydrophobicity, hydrogen bond potential, and 3D pharmacophore features
 - **Advanced Conformer Generation**: K-means clustering and MMFF optimization
 - **Multi-Conformer Alignment**: Process multiple conformers with individual surface representations
 - **Configurable Charge Methods**: XTB (quantum chemistry) or RDKit (fast) charges for ESP
@@ -116,7 +116,7 @@ No manual configuration is needed for most installations!
 - `output_dir`: Output directory for results
 
 ### **Surface Properties**
-- `--properties P`: Select properties (`esp`, `hb`, `hy`, `all`, `none`)
+- `--properties P`: Select properties (`esp`, `hb`, `hy`, `pharma`, `all`, `none`)
 - `--charge-method M`: ESP charge method (`xtb`, `rdkit`) (default: rdkit)
 - `--mesh {msms|fibonacci}`: Surface generation method (default: fibonacci)
 - `--vertices N`: Number of surface vertices (default: 1000)
