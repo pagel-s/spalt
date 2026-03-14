@@ -38,8 +38,8 @@ This directory contains example molecular input files for testing and demonstrat
 # Generate surface from SDF file
 ./spalt examples/Mol1.sdf examples/Mol2.sdf output/ --properties esp,hydrophobicity
 
-# Process 2D SDF (will generate conformers)
-./spalt examples/Mol2_2d.sdf output/ --use-advanced --total-confs 20 --num-clusters 3
+# Process 2D SDF (generates 3 diverse conformers from 20 samples)
+./spalt examples/Mol2_2d.sdf output/ --sample 20 --conformers 3
 ```
 
 ### **Using SMILES Files**
@@ -47,7 +47,7 @@ This directory contains example molecular input files for testing and demonstrat
 # Process single SMILES
 ./spalt examples/test_mol.smiles output/ --properties all
 
-# Process multiple SMILES from text file
+# Process multiple SMILES from text file (samples 50 conformers by default with --use-advanced, keeps 5 diverse ones)
 ./spalt examples/Mol1.sdf examples/smiles.txt output/ --use-advanced --conformers 5
 ```
 

@@ -8,20 +8,13 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        compiler: [gcc-9, gcc-10, gcc-11, clang-12, clang-13]
+        compiler: [gcc-12, clang-14]
         build-type: [Debug, Release]
         exclude:
-          # Skip some combinations to speed up CI
-          - compiler: gcc-10
-            build-type: Debug
-          - compiler: gcc-11
-            build-type: Debug
-          - compiler: clang-12
-            build-type: Debug
-          - compiler: clang-13
+          - compiler: gcc-12
             build-type: Debug
 
     steps:
@@ -36,16 +29,12 @@ jobs:
           cmake \
           libeigen3-dev \
           libboost-all-dev \
-          python3-dev \
-          python3-pip
-
-    - name: Install RDKit
-      run: |
-        conda install -c conda-forge rdkit -y
+          librdkit-dev \
+          rdkit-data
 
     - name: Install Open3D
       run: |
-        pip install open3d
+        sudo apt-get install -y libopen3d-dev
 
     - name: Install MSMS (optional)
       run: |
@@ -71,7 +60,7 @@ jobs:
         ctest --output-on-failure --parallel $(nproc)
 
     - name: Generate coverage report
-      if: matrix.build-type == 'Debug' && matrix.compiler == 'gcc-11'
+      if: matrix.build-type == 'Debug' && matrix.compiler == 'gcc'
       run: |
         cd build
         # Install gcov if not available
@@ -82,7 +71,7 @@ jobs:
         echo "Coverage report generation placeholder"
 
   code-quality:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -95,13 +84,19 @@ jobs:
           cmake \
           clang-format \
           clang-tidy \
-          cppcheck
+          cppcheck \
+          libeigen3-dev \
+          libboost-all-dev \
+          librdkit-dev \
+          rdkit-data
+        sudo apt-get install -y libopen3d-dev
 
     - name: Code formatting check
       run: |
         find src/ tests/ -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror
 
     - name: Static analysis
+      shell: bash -el {0}
       run: |
         mkdir build
         cd build
@@ -111,7 +106,7 @@ jobs:
         find ../src -name "*.cpp" | xargs clang-tidy -p build/
 
   documentation:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -123,9 +118,15 @@ jobs:
           build-essential \
           cmake \
           doxygen \
-          graphviz
+          graphviz \
+          libeigen3-dev \
+          libboost-all-dev \
+          librdkit-dev \
+          rdkit-data
+        sudo apt-get install -y libopen3d-dev
 
     - name: Generate documentation
+      shell: bash -el {0}
       run: |
         mkdir build
         cd build
@@ -141,7 +142,7 @@ jobs:
         destination_dir: docs
 
   security-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout code
       uses: actions/checkout@v4

@@ -1,10 +1,10 @@
 #include "surface_fibonacci.h"
-#include <cmath>
-#include <algorithm>
-#include <unordered_map>
-#include <iostream>
 #include <open3d/geometry/PointCloud.h>
 #include <open3d/geometry/TriangleMesh.h>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <unordered_map>
 
 #include <Eigen/Dense>
 
@@ -13,28 +13,28 @@ namespace spalt {
 FibonacciSurfaceGenerator::FibonacciSurfaceGenerator(const FibonacciSurfaceParams& params)
     : params_(params) {
     if (!params_.isValid()) {
-        std::cerr << "Warning: Invalid FibonacciSurfaceParams provided, using defaults" << std::endl;
+        std::cerr << "Warning: Invalid FibonacciSurfaceParams provided, using defaults"
+                  << std::endl;
         params_ = FibonacciSurfaceParams();
     }
 }
 
 std::pair<std::shared_ptr<SimpleMesh>, std::shared_ptr<SimplePointCloud>>
-FibonacciSurfaceGenerator::generateSurface(const Eigen::MatrixXd& centers, 
-                                         const Eigen::VectorXd& radii) const {
-    
+FibonacciSurfaceGenerator::generateSurface(const Eigen::MatrixXd& centers,
+                                           const Eigen::VectorXd& radii) const {
     // Sample points from molecular surface
     Eigen::MatrixXd surface_points = sampleMolecularSurface(centers, radii);
-    
+
     // Create simple point cloud
     auto point_cloud = std::make_shared<SimplePointCloud>();
     for (int i = 0; i < surface_points.rows(); ++i) {
         point_cloud->points.push_back(surface_points.row(i).transpose());
-        point_cloud->normals.push_back(Eigen::Vector3d::Zero()); // Will be estimated if needed
+        point_cloud->normals.push_back(Eigen::Vector3d::Zero());  // Will be estimated if needed
     }
 
     // Create simple mesh
     auto mesh = std::make_shared<SimpleMesh>();
-    
+
     if (surface_points.rows() == 0) {
         return std::make_pair(mesh, point_cloud);
     }
@@ -44,21 +44,22 @@ FibonacciSurfaceGenerator::generateSurface(const Eigen::MatrixXd& centers,
     for (int i = 0; i < surface_points.rows(); ++i) {
         open3d_pcd->points_.push_back(surface_points.row(i).transpose());
     }
-    
+
     // Estimate normals for mesh generation
     if (params_.estimate_normals) {
         open3d_pcd->EstimateNormals();
     }
-    
+
     // Generate mesh using ball pivoting
     std::shared_ptr<open3d::geometry::TriangleMesh> open3d_mesh = nullptr;
     std::vector<double> ball_radii = params_.ball_radii;
     if (ball_radii.empty()) {
         ball_radii.push_back(params_.probe_radius);
     }
-    
+
     try {
-        open3d_mesh = open3d::geometry::TriangleMesh::CreateFromPointCloudBallPivoting(*open3d_pcd, ball_radii);
+        open3d_mesh = open3d::geometry::TriangleMesh::CreateFromPointCloudBallPivoting(*open3d_pcd,
+                                                                                       ball_radii);
     } catch (const std::exception& e) {
         // If ball pivoting fails, create a simple vertex-only mesh
         for (int i = 0; i < surface_points.rows(); ++i) {
@@ -66,46 +67,47 @@ FibonacciSurfaceGenerator::generateSurface(const Eigen::MatrixXd& centers,
         }
         return std::make_pair(mesh, point_cloud);
     }
-    
+
     // Convert Open3D mesh to SimpleMesh
     for (size_t i = 0; i < open3d_mesh->vertices_.size(); ++i) {
         mesh->vertices.push_back(open3d_mesh->vertices_[i]);
     }
-    
+
     for (size_t i = 0; i < open3d_mesh->triangles_.size(); ++i) {
         mesh->triangles.push_back(open3d_mesh->triangles_[i]);
     }
-    
+
     return std::make_pair(mesh, point_cloud);
 }
 
-Eigen::MatrixXd FibonacciSurfaceGenerator::sampleMolecularSurface(const Eigen::MatrixXd& centers, 
-                                                                const Eigen::VectorXd& radii) const {
+Eigen::MatrixXd FibonacciSurfaceGenerator::sampleMolecularSurface(
+    const Eigen::MatrixXd& centers, const Eigen::VectorXd& radii) const {
     if (centers.rows() != radii.rows()) {
         throw std::invalid_argument("Number of centers must match number of radii");
     }
-    
+
     int num_atoms = centers.rows();
     if (num_atoms == 0) {
         return Eigen::MatrixXd(0, 3);
     }
-    
+
     // Calculate surface radii (vdW + probe)
     Eigen::VectorXd surface_radii = radii.array() + params_.probe_radius;
-    
+
     // Calculate number of samples per atom (scaled by relative radius, squared)
     Eigen::VectorXd radius_ratio = (radii.array() / params_.carbon_radius).matrix();
-    Eigen::VectorXi num_samples_per_atom = (params_.num_samples_per_atom * radius_ratio.array().square()).cast<int>();
-    
+    Eigen::VectorXi num_samples_per_atom =
+        (params_.num_samples_per_atom * radius_ratio.array().square()).cast<int>();
+
     // Ensure minimum of 1 sample per atom
     num_samples_per_atom = num_samples_per_atom.cwiseMax(1);
-    
+
     // Calculate total number of points
     int total_points = num_samples_per_atom.sum();
     if (total_points == 0) {
         return Eigen::MatrixXd(0, 3);
     }
-    
+
     Eigen::MatrixXd all_sphere_points(total_points, 3);
     last_sample_atom_indices_.assign(total_points, -1);
 
@@ -184,33 +186,32 @@ Eigen::MatrixXd FibonacciSurfaceGenerator::generateFibonacciSphere(int num_sampl
     if (it != sphere_cache_.end()) {
         return it->second;
     }
-    
+
     if (num_samples <= 0) {
         return Eigen::MatrixXd(0, 3);
     }
-    
+
     // Generate Fibonacci spiral points on unit sphere
     double offset = 2.0 / num_samples;
     double increment = M_PI * (3.0 - std::sqrt(5.0));
-    
+
     Eigen::MatrixXd points(num_samples, 3);
-    
+
     for (int i = 0; i < num_samples; ++i) {
         double y = (i * offset) - 1.0 + (offset / 2.0);
         double r = std::sqrt(1.0 - y * y);
         double phi = std::fmod((i + 1), num_samples) * increment;
-        
+
         points(i, 0) = std::cos(phi) * r;
         points(i, 1) = y;
         points(i, 2) = std::sin(phi) * r;
     }
-    
+
     // Cache the result
     sphere_cache_[num_samples] = points;
-    
+
     return points;
 }
-
 
 void FibonacciSurfaceGenerator::setParams(const FibonacciSurfaceParams& params) {
     if (params.isValid()) {
@@ -218,8 +219,9 @@ void FibonacciSurfaceGenerator::setParams(const FibonacciSurfaceParams& params) 
         // Clear cache when parameters change
         sphere_cache_.clear();
     } else {
-        open3d::utility::LogWarning("Invalid FibonacciSurfaceParams provided, keeping current parameters");
+        open3d::utility::LogWarning(
+            "Invalid FibonacciSurfaceParams provided, keeping current parameters");
     }
 }
 
-} // namespace spalt
+}  // namespace spalt

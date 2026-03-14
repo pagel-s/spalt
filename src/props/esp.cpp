@@ -1,8 +1,8 @@
 #include "esp.h"
-#include <GraphMol/PartialCharges/GasteigerCharges.h>
-#include <GraphMol/FileParsers/MolWriters.h>
 #include <GraphMol/FileParsers/FileParsers.h>
+#include <GraphMol/FileParsers/MolWriters.h>
 #include <GraphMol/MolOps.h>
+#include <GraphMol/PartialCharges/GasteigerCharges.h>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -36,7 +36,8 @@ void SurfaceESPProperty::compute(const Surface& s,
     // Print the actual minimum and maximum electrostatic potential values
     if (!potentials.empty()) {
         auto [min_it, max_it] = std::minmax_element(potentials.begin(), potentials.end());
-        (void)min_it; (void)max_it; // Suppress unused variable warning
+        (void)min_it;
+        (void)max_it;  // Suppress unused variable warning
     } else {
         std::cout << "Electrostatic potential vector is empty." << std::endl;
     }

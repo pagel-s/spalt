@@ -89,6 +89,8 @@ else()
     RDKitChemTransforms
     RDKitDescriptors
     RDKitMolAlign
+    RDKitChemicalFeatures
+    RDKitMolChemicalFeatures
   )
 
   # Find each library
@@ -247,4 +249,25 @@ if(SPALT_BUILD_TESTS)
   include(CTest)
   enable_testing()
   add_subdirectory(tests)
+endif()
+
+# Documentation
+option(BUILD_DOCUMENTATION "Build documentation" OFF)
+if(BUILD_DOCUMENTATION)
+  find_package(Doxygen)
+  if(DOXYGEN_FOUND)
+    set(DOXYGEN_GENERATE_HTML YES)
+    set(DOXYGEN_HTML_OUTPUT docs/html)
+    set(DOXYGEN_PROJECT_NAME spalt)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs/html)
+    doxygen_add_docs(docs
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
+      ${CMAKE_CURRENT_SOURCE_DIR}/README.md
+      ALL
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      COMMENT "Generating API documentation with Doxygen"
+    )
+  else()
+    message(WARNING "Doxygen need to be installed to generate the doxygen documentation")
+  endif()
 endif()

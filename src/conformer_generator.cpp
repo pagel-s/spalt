@@ -1,5 +1,4 @@
 #include "conformer_generator.h"
-#include "molecule.h" // For MMFF function declarations
 #include <GraphMol/Conformer.h>
 #include <GraphMol/DistGeomHelpers/Embedder.h>
 #include <GraphMol/ForceFieldHelpers/MMFF/Builder.h>
@@ -12,6 +11,7 @@
 #include <cmath>
 #include <iostream>
 #include <random>
+#include "molecule.h"  // For MMFF function declarations
 
 // Simple K-means implementation for conformer clustering
 class SimpleKMeans {

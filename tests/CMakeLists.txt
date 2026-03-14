@@ -1,10 +1,17 @@
 include(FetchContent)
 
-FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
-  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+  FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+else()
+  FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+  )
+endif()
 
 # Recommended by GoogleTest on Windows; harmless elsewhere
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -26,6 +33,7 @@ add_executable(spalt_tests
   test_normals_usage.cpp
   test_segfault_fixes.cpp
   test_tsv_parsing.cpp
+  test_pharmacophore.cpp
 )
 
 # Give the tests access to headers in src/
@@ -40,6 +48,7 @@ target_include_directories(spalt_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
    ${CMAKE_SOURCE_DIR}/src/props/esp.cpp
    ${CMAKE_SOURCE_DIR}/src/props/hydrophobicity.cpp
    ${CMAKE_SOURCE_DIR}/src/props/hbond.cpp
+   ${CMAKE_SOURCE_DIR}/src/props/pharmacophore.cpp
    ${CMAKE_SOURCE_DIR}/src/props/rdkit_utils.cpp
    ${CMAKE_SOURCE_DIR}/src/props/property_params.cpp
    ${CMAKE_SOURCE_DIR}/src/conformer_generator.cpp

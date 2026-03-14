@@ -3,8 +3,8 @@
 #include <GraphMol/MolChemicalFeatures/MolChemicalFeature.h>
 #include <GraphMol/MolChemicalFeatures/MolChemicalFeatureFactory.h>
 #include <GraphMol/MolOps.h>
-#include <GraphMol/Substruct/SubstructMatch.h>
 #include <GraphMol/SmilesParse/SmilesParse.h>
+#include <GraphMol/Substruct/SubstructMatch.h>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -66,7 +66,8 @@ void HBondProperty::compute(const Surface& surface,
             if (atom_idx == -1) {
                 // If not found, use default value
 #ifdef DEBUG
-                std::cout << "WARNING: Could not map vertex atom name '" << atom_key << "' to any atom" << std::endl;
+                std::cout << "WARNING: Could not map vertex atom name '" << atom_key
+                          << "' to any atom" << std::endl;
 #endif
                 hbond_values.push_back(0.0);
                 continue;
@@ -87,10 +88,10 @@ void HBondProperty::compute(const Surface& surface,
         // Compute statistics for display
         if (!hbond_values.empty()) {
             double avg_hbond = std::accumulate(hbond_values.begin(), hbond_values.end(), 0.0) /
-            hbond_values.size();
-            
+                               hbond_values.size();
+
             cache["hbond_avg"] = avg_hbond;
-            #ifdef DEBUG
+#ifdef DEBUG
             double min_hbond = *std::min_element(hbond_values.begin(), hbond_values.end());
             double max_hbond = *std::max_element(hbond_values.begin(), hbond_values.end());
             std::cout << "Hydrogen bond potential computation successful: " << hbond_values.size()
@@ -148,20 +149,15 @@ std::set<int> HBondProperty::getAcceptors(std::shared_ptr<RDKit::ROMol> mol) con
         std::vector<std::string> acceptor_smarts = {
             // Hydroxyl acceptors: [O;H1;v2]
             "[O;H1;v2]",
-            
+
             // ChalcAcceptor patterns:
-            "[O;H0;v2;!$(O=N-*)]",
-            "[O;-;!$(*-N=O)]",
-            "[o;+0]",
-            
+            "[O;H0;v2;!$(O=N-*)]", "[O;-;!$(*-N=O)]", "[o;+0]",
+
             // NAcceptor patterns:
-            "[n;+0;!X3;!$([n;H1](cc)cc)]",
-            "[N;H0]#[C&v4]",
-            "[N&v3;H0;$(Nc)]",
-            
+            "[n;+0;!X3;!$([n;H1](cc)cc)]", "[N;H0]#[C&v4]", "[N&v3;H0;$(Nc)]",
+
             // HalogenAcceptor
-            "[F;$(F-[#6]);!$(FC[F,Cl,Br,I])]"
-        };
+            "[F;$(F-[#6]);!$(FC[F,Cl,Br,I])]"};
 
         // Apply each SMARTS pattern using proper RDKit C++ API
         for (const auto& smarts : acceptor_smarts) {
@@ -175,15 +171,17 @@ std::set<int> HBondProperty::getAcceptors(std::shared_ptr<RDKit::ROMol> mol) con
                 // Get all matches at once
                 std::vector<RDKit::MatchVectType> matches;
                 RDKit::SubstructMatch(*mol, *query, matches);
-                // std::cout << "Acceptors: Found " << matches.size() << " matches for SMARTS pattern " << smarts << std::endl;   
+                // std::cout << "Acceptors: Found " << matches.size() << " matches for SMARTS
+                // pattern " << smarts << std::endl;
                 for (const auto& match : matches) {
                     if (!match.empty()) {
-                        acceptors.insert(match[0].second);  // Add atom index (second element of pair)
+                        acceptors.insert(
+                            match[0].second);  // Add atom index (second element of pair)
                     }
                 }
             } catch (const std::exception& e) {
-                std::cerr << "Warning: Error processing SMARTS pattern " << smarts 
-                          << ": " << e.what() << std::endl;
+                std::cerr << "Warning: Error processing SMARTS pattern " << smarts << ": "
+                          << e.what() << std::endl;
             }
         }
 
@@ -202,12 +200,9 @@ std::set<int> HBondProperty::getDonors(std::shared_ptr<RDKit::ROMol> mol) const 
         // These match the SingleAtomDonor feature definition
         std::vector<std::string> donor_smarts = {
             // NDonor patterns
-            "[N&!H0&v3,N&!H0&+1&v4,n&H1&+0]",
-            "[$([Nv3](-C)(-C)-C)]",
-            "[$(n[n;H1]),$(nc[n;H1])]",
+            "[N&!H0&v3,N&!H0&+1&v4,n&H1&+0]", "[$([Nv3](-C)(-C)-C)]", "[$(n[n;H1]),$(nc[n;H1])]",
             // ChalcDonor patterns
-            "[O,S;H1;+0]"
-        };
+            "[O,S;H1;+0]"};
 
         // Apply each SMARTS pattern using proper RDKit C++ API
         for (const auto& smarts : donor_smarts) {
@@ -221,16 +216,17 @@ std::set<int> HBondProperty::getDonors(std::shared_ptr<RDKit::ROMol> mol) const 
                 // Get all matches at once
                 std::vector<RDKit::MatchVectType> matches;
                 RDKit::SubstructMatch(*mol, *query, matches);
-                
-                // std::cout << "Donors: Found " << matches.size() << " matches for SMARTS pattern " << smarts << std::endl;   
+
+                // std::cout << "Donors: Found " << matches.size() << " matches for SMARTS pattern "
+                // << smarts << std::endl;
                 for (const auto& match : matches) {
                     if (!match.empty()) {
                         donors.insert(match[0].second);  // Add atom index (second element of pair)
                     }
                 }
             } catch (const std::exception& e) {
-                std::cerr << "Warning: Error processing SMARTS pattern " << smarts 
-                          << ": " << e.what() << std::endl;
+                std::cerr << "Warning: Error processing SMARTS pattern " << smarts << ": "
+                          << e.what() << std::endl;
             }
         }
 

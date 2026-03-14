@@ -47,7 +47,7 @@ TEST_F(PropertySystemTest, PropertyParamsRegistryUnknownProperty) {
 TEST_F(PropertySystemTest, PropertyParamsRegistryGetPropertyNames) {
     auto property_names = PropertyParamsRegistry::getPropertyNames();
 
-    // Should contain the three registered properties
+    // Should contain the registered properties
     EXPECT_TRUE(std::find(property_names.begin(), property_names.end(), "esp") !=
                 property_names.end());
     EXPECT_TRUE(std::find(property_names.begin(), property_names.end(), "hydrophobicity") !=
@@ -55,7 +55,7 @@ TEST_F(PropertySystemTest, PropertyParamsRegistryGetPropertyNames) {
     EXPECT_TRUE(std::find(property_names.begin(), property_names.end(), "hbond") !=
                 property_names.end());
 
-    EXPECT_EQ(property_names.size(), 3);
+    EXPECT_EQ(property_names.size(), 11);
 }
 
 TEST_F(PropertySystemTest, MultiPropertyComputation) {

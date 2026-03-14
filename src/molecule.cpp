@@ -14,13 +14,14 @@
 #include "props/esp.h"
 #include "props/hbond.h"
 #include "props/hydrophobicity.h"
+#include "props/pharmacophore.h"
 #include "props/property_params.h"
 #include "surface.h"
 
 #include <GraphMol/DistGeomHelpers/Embedder.h>
-#include <GraphMol/FileParsers/MolWriters.h>
 #include <GraphMol/FileParsers/FileParsers.h>
 #include <GraphMol/FileParsers/MolSupplier.h>
+#include <GraphMol/FileParsers/MolWriters.h>
 #include <GraphMol/ForceFieldHelpers/MMFF/MMFF.h>
 #include <GraphMol/ForceFieldHelpers/UFF/UFF.h>
 #include <GraphMol/MolOps.h>
@@ -200,13 +201,14 @@ std::unordered_map<int, int> Molecule::generateAdvancedConformers(const Conforme
             // Add only the selected conformers
             for (const auto& [cluster_id, conformer_id] : cluster_map) {
                 // Safety check: ensure conformer_id is valid
-                if (conformer_id < 0 || static_cast<unsigned int>(conformer_id) >= this->mol->getNumConformers()) {
-                    std::cerr << "Warning: Invalid conformer ID " << conformer_id 
-                              << " (total conformers: " << this->mol->getNumConformers() 
+                if (conformer_id < 0 ||
+                    static_cast<unsigned int>(conformer_id) >= this->mol->getNumConformers()) {
+                    std::cerr << "Warning: Invalid conformer ID " << conformer_id
+                              << " (total conformers: " << this->mol->getNumConformers()
                               << "), skipping cluster " << cluster_id << std::endl;
                     continue;
                 }
-                
+
                 auto selected_conf =
                     std::make_unique<RDKit::Conformer>(this->mol->getConformer(conformer_id));
                 // Reset the conformer ID to sequential numbering
@@ -675,7 +677,6 @@ void Molecule::compute(const std::string& property_name, unsigned int conformer_
                                  }());
     }
 
-
     int surface_id =
         createSurface(conformer_id, surface_params.num_vertices, surface_params.radius,
                       surface_params.density, surface_params.hdensity, surface_params.type,
@@ -773,6 +774,32 @@ void Molecule::registerDefaultProperties() {
     // Register hydrogen bond property
     registerProperty("hbond", []() { return std::make_unique<HBondProperty>(); });
 
+    // Register pharmacophore properties
+    registerProperty("pharma_aromatic", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::AROMATIC);
+    });
+    registerProperty("pharma_pos", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::POS_IONIZABLE);
+    });
+    registerProperty("pharma_neg", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::NEG_IONIZABLE);
+    });
+    registerProperty("pharma_donor", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::DONOR);
+    });
+    registerProperty("pharma_acceptor", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::ACCEPTOR);
+    });
+    registerProperty("pharma_hydrophobe", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::HYDROPHOBE);
+    });
+    registerProperty("pharma_lumped_hydrophobe", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::LUMPED_HYDROPHOBE);
+    });
+    registerProperty("pharma_zn_binder", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::ZN_BINDER);
+    });
+
     // Future properties can be registered here:
     // registerProperty("hydrophobicity", []() { return
     // std::make_unique<SurfaceHydrophobicityProperty>(); }); registerProperty("electrostatics",
@@ -787,6 +814,32 @@ void Molecule::registerAllProperties() {
     registerProperty("hydrophobicity", []() { return std::make_unique<HydrophobicityProperty>(); });
 
     registerProperty("hbond", []() { return std::make_unique<HBondProperty>(); });
+
+    // Register pharmacophore properties
+    registerProperty("pharma_aromatic", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::AROMATIC);
+    });
+    registerProperty("pharma_pos", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::POS_IONIZABLE);
+    });
+    registerProperty("pharma_neg", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::NEG_IONIZABLE);
+    });
+    registerProperty("pharma_donor", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::DONOR);
+    });
+    registerProperty("pharma_acceptor", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::ACCEPTOR);
+    });
+    registerProperty("pharma_hydrophobe", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::HYDROPHOBE);
+    });
+    registerProperty("pharma_lumped_hydrophobe", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::LUMPED_HYDROPHOBE);
+    });
+    registerProperty("pharma_zn_binder", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::ZN_BINDER);
+    });
 }
 
 std::vector<std::string> Molecule::getRegisteredProperties() const {

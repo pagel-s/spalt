@@ -18,7 +18,7 @@ A C++ library for generating molecular surfaces from SMILES strings or coordinat
 ## Features
 
 - **Molecular Surface Generation**: MSMS and Fibonacci sphere surface generation
-- **Surface Properties**: Electrostatic potential (ESP), hydrophobicity, hydrogen bond potential
+- **Surface Properties**: Electrostatic potential (ESP), hydrophobicity, hydrogen bond potential, and 3D pharmacophore features
 - **Advanced Conformer Generation**: K-means clustering and MMFF optimization
 - **Multi-Conformer Alignment**: Process multiple conformers with individual surface representations
 - **Configurable Charge Methods**: XTB (quantum chemistry) or RDKit (fast) charges for ESP
@@ -84,12 +84,19 @@ No manual configuration is needed for most installations!
 ./spalt reference.sdf input.sdf output_dir/ --properties esp,hb,hy
 ```
 
-### Advanced Conformer Generation
-```bash
-# Generate 10 diverse conformers from 100 samples and align best ones
-./spalt reference.sdf "CCO" output_dir/ --conformers 10 --sample 100 --top-n 5
+### Conformer Generation
 
-# Use XTB quantum chemistry charges for high-accuracy ESP
+When providing 1D/2D input structures (e.g., SMILES strings or 2D SDF files), `spalt` needs to generate 3D conformers before computing surfaces. The process works in three steps: **Sampling**, **Selection**, and **Alignment Filtering**.
+
+```bash
+# Generate 100 initial samples, cluster them to pick 10 diverse conformers,
+# align all 10 to the reference, and save only the top 5 best-aligned results.
+./spalt reference.sdf "CCO" output_dir/ --sample 100 --conformers 10 --top-n 5
+
+# Use a shortcut for robust sampling (--use-advanced is equivalent to --sample 50)
+./spalt reference.sdf input.sdf output_dir/ --use-advanced --conformers 5
+
+# Use XTB quantum chemistry charges for high-accuracy ESP (on the generated conformer)
 ./spalt reference.sdf input.sdf output_dir/ --charge-method xtb --properties esp
 
 # Use Fibonacci surface generation
@@ -116,18 +123,18 @@ No manual configuration is needed for most installations!
 - `output_dir`: Output directory for results
 
 ### **Surface Properties**
-- `--properties P`: Select properties (`esp`, `hb`, `hy`, `all`, `none`)
+- `--properties P`: Select properties (`esp`, `hb`, `hy`, `pharma`, `all`, `none`)
 - `--charge-method M`: ESP charge method (`xtb`, `rdkit`) (default: rdkit)
 - `--mesh {msms|fibonacci}`: Surface generation method (default: fibonacci)
 - `--vertices N`: Number of surface vertices (default: 1000)
 - `--radius R`: Probe radius for surface generation (default: 1.4)
 
 ### **Conformer Generation**
-- `--conformers N`: Final number of conformers to align (default: 1)
-- `--sample M`: Number of candidates to sample from (default: 1). If M > N, clustering is used to pick diverse conformers.
-- `--use-advanced`: Use advanced conformer generation (shortcut for `--sample 50`)
-- `--random-seed N`: Random seed for reproducible generation (default: 4)
-- `--top-n N`: Save only the top N best aligned conformers (default: all)
+- `--sample M`: Number of initial candidate conformers to generate and optimize (default: 1). If `M > N`, `spalt` clusters the samples and picks the most diverse geometries.
+- `--conformers N`: Final number of diverse 3D conformers to process and align per molecule (default: 1).
+- `--top-n K`: After alignment, save only the `K` best-aligned conformers based on surface fitness (default: all).
+- `--use-advanced`: Shortcut flag that automatically sets `--sample 50` for deeper conformational searching.
+- `--random-seed N`: Random seed for reproducible conformer generation (default: 4).
 
 ### **Output Options**
 - `--output-type {mesh|points}`: Export as triangular mesh or point cloud (default: mesh)
