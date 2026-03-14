@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         compiler: [gcc-12, clang-14]
@@ -34,8 +34,6 @@ jobs:
 
     - name: Install Open3D
       run: |
-        sudo add-apt-repository ppa:open3d-admin/release -y
-        sudo apt-get update
         sudo apt-get install -y libopen3d-dev
 
     - name: Install MSMS (optional)
@@ -73,7 +71,7 @@ jobs:
         echo "Coverage report generation placeholder"
 
   code-quality:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -108,7 +106,7 @@ jobs:
         find ../src -name "*.cpp" | xargs clang-tidy -p build/
 
   documentation:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -144,7 +142,7 @@ jobs:
         destination_dir: docs
 
   security-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
