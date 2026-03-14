@@ -152,12 +152,15 @@ std::vector<std::string> parseProperties(const std::string& properties_str) {
                     properties.push_back("hbond");
                 } else if (property == "hy") {
                     properties.push_back("hydrophobicity");
-                } else if (property == "pharmacophore" || property == "pharma") {
+                } else                 if (property == "pharmacophore" || property == "pharma") {
                     properties.push_back("pharma_aromatic");
                     properties.push_back("pharma_pos");
                     properties.push_back("pharma_neg");
                     properties.push_back("pharma_donor");
                     properties.push_back("pharma_acceptor");
+                    properties.push_back("pharma_hydrophobe");
+                    properties.push_back("pharma_lumped_hydrophobe");
+                    properties.push_back("pharma_zn_binder");
                 } else {
                     // Use the property name as-is (supports full names too)
                     properties.push_back(property);

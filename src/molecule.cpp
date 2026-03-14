@@ -779,15 +779,25 @@ void Molecule::registerDefaultProperties() {
         return std::make_unique<PharmacophoreProperty>(PharmaType::AROMATIC);
     });
     registerProperty("pharma_pos", []() {
-        return std::make_unique<PharmacophoreProperty>(PharmaType::POSITIVE);
+        return std::make_unique<PharmacophoreProperty>(PharmaType::POS_IONIZABLE);
     });
     registerProperty("pharma_neg", []() {
-        return std::make_unique<PharmacophoreProperty>(PharmaType::NEGATIVE);
+        return std::make_unique<PharmacophoreProperty>(PharmaType::NEG_IONIZABLE);
     });
-    registerProperty("pharma_donor",
-                     []() { return std::make_unique<PharmacophoreProperty>(PharmaType::DONOR); });
+    registerProperty("pharma_donor", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::DONOR);
+    });
     registerProperty("pharma_acceptor", []() {
         return std::make_unique<PharmacophoreProperty>(PharmaType::ACCEPTOR);
+    });
+    registerProperty("pharma_hydrophobe", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::HYDROPHOBE);
+    });
+    registerProperty("pharma_lumped_hydrophobe", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::LUMPED_HYDROPHOBE);
+    });
+    registerProperty("pharma_zn_binder", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::ZN_BINDER);
     });
 
     // Future properties can be registered here:
@@ -810,15 +820,25 @@ void Molecule::registerAllProperties() {
         return std::make_unique<PharmacophoreProperty>(PharmaType::AROMATIC);
     });
     registerProperty("pharma_pos", []() {
-        return std::make_unique<PharmacophoreProperty>(PharmaType::POSITIVE);
+        return std::make_unique<PharmacophoreProperty>(PharmaType::POS_IONIZABLE);
     });
     registerProperty("pharma_neg", []() {
-        return std::make_unique<PharmacophoreProperty>(PharmaType::NEGATIVE);
+        return std::make_unique<PharmacophoreProperty>(PharmaType::NEG_IONIZABLE);
     });
-    registerProperty("pharma_donor",
-                     []() { return std::make_unique<PharmacophoreProperty>(PharmaType::DONOR); });
+    registerProperty("pharma_donor", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::DONOR);
+    });
     registerProperty("pharma_acceptor", []() {
         return std::make_unique<PharmacophoreProperty>(PharmaType::ACCEPTOR);
+    });
+    registerProperty("pharma_hydrophobe", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::HYDROPHOBE);
+    });
+    registerProperty("pharma_lumped_hydrophobe", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::LUMPED_HYDROPHOBE);
+    });
+    registerProperty("pharma_zn_binder", []() {
+        return std::make_unique<PharmacophoreProperty>(PharmaType::ZN_BINDER);
     });
 }
 

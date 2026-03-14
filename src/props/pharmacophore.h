@@ -15,7 +15,7 @@ namespace RDKit {
 class ROMol;
 }
 
-enum class PharmaType { AROMATIC, POSITIVE, NEGATIVE, DONOR, ACCEPTOR };
+enum class PharmaType { ACCEPTOR, AROMATIC, DONOR, HYDROPHOBE, LUMPED_HYDROPHOBE, NEG_IONIZABLE, POS_IONIZABLE, ZN_BINDER };
 
 class PharmacophoreProperty : public ISurfaceProperty {
   public:
@@ -23,6 +23,7 @@ class PharmacophoreProperty : public ISurfaceProperty {
     virtual ~PharmacophoreProperty() = default;
 
     std::string key() const override;
+    std::string getFamilyName() const;
     void compute(const Surface& surface, std::unordered_map<std::string, std::any>& cache) override;
 
   private:

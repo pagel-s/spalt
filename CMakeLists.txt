@@ -89,6 +89,8 @@ else()
     RDKitChemTransforms
     RDKitDescriptors
     RDKitMolAlign
+    RDKitChemicalFeatures
+    RDKitMolChemicalFeatures
   )
 
   # Find each library
