@@ -18,6 +18,11 @@ jobs:
             build-type: Debug
 
     steps:
+    - name: Install Open3D
+      run: |
+        sudo add-apt-repository ppa:open3d-admin/release -y
+        sudo apt-get update
+        sudo apt-get install -y libopen3d-dev
     - name: Checkout code
       uses: actions/checkout@v4
 
