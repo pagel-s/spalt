@@ -104,8 +104,7 @@ Molecule::Molecule(Molecule&& other) noexcept
     : smiles(std::move(other.smiles)), charge(other.charge), mol(std::move(other.mol)),
       property_registry_(std::move(other.property_registry_)) {
     
-    std::lock_guard<std::mutex> lock1(other.surface_cache_mutex_);
-    std::lock_guard<std::mutex> lock2(other.property_cache_mutex_);
+    std::scoped_lock lock(other.surface_cache_mutex_, other.property_cache_mutex_, other.mol_mutex_);
     surface_cache_ = std::move(other.surface_cache_);
     surface_property_cache_ = std::move(other.surface_property_cache_);
     
@@ -116,8 +115,8 @@ Molecule::Molecule(Molecule&& other) noexcept
 Molecule& Molecule::operator=(Molecule&& other) noexcept {
     if (this != &other) {
         // We must lock both objects to avoid deadlocks
-        std::scoped_lock lock(surface_cache_mutex_, property_cache_mutex_,
-                              other.surface_cache_mutex_, other.property_cache_mutex_);
+        std::scoped_lock lock(surface_cache_mutex_, property_cache_mutex_, mol_mutex_,
+                              other.surface_cache_mutex_, other.property_cache_mutex_, other.mol_mutex_);
         smiles = std::move(other.smiles);
         charge = other.charge;
         mol = std::move(other.mol);
@@ -140,6 +139,7 @@ int Molecule::get_charge() const {
 }
 
 std::unique_ptr<RDKit::ROMol> Molecule::get_mol() const {
+    std::lock_guard<std::mutex> lock(mol_mutex_);
     if (this->mol == nullptr) {
         return nullptr;
     }
@@ -257,6 +257,7 @@ void Molecule::get_charge_from_mol() {
 }
 
 void Molecule::add_hydrogens_to_mol() {
+    std::lock_guard<std::mutex> lock(mol_mutex_);
     if (this->mol == nullptr) {
         return;
     }
@@ -264,6 +265,7 @@ void Molecule::add_hydrogens_to_mol() {
 }
 
 void Molecule::add_hydrogens_to_mol_if_needed() {
+    std::lock_guard<std::mutex> lock(mol_mutex_);
     if (this->mol == nullptr) {
         return;
     }
@@ -271,6 +273,7 @@ void Molecule::add_hydrogens_to_mol_if_needed() {
 }
 
 void Molecule::remove_hydrogens_from_mol() {
+    std::lock_guard<std::mutex> lock(mol_mutex_);
     if (this->mol == nullptr) {
         return;
     }
@@ -300,7 +303,11 @@ int Molecule::createSurface(unsigned int conformer_id, unsigned int num_vertices
     }
 
     // smiles
-    std::string curr_smiles = RDKit::MolToSmiles(*mol);
+    std::string curr_smiles;
+    {
+        std::lock_guard<std::mutex> lock(mol_mutex_);
+        curr_smiles = RDKit::MolToSmiles(*mol);
+    }
 
     auto surface = std::make_shared<Surface>(*this, conformer_id, num_vertices, radius, density,
                                              hdensity, type, program, sample_method);
@@ -351,6 +358,7 @@ std::string Molecule::generateSurfaceCacheKey(unsigned int num_vertices, double 
 }
 
 int Molecule::getNumConformers() const {
+    std::lock_guard<std::mutex> lock(mol_mutex_);
     if (mol == nullptr) {
         return 0;
     }
@@ -358,6 +366,7 @@ int Molecule::getNumConformers() const {
 }
 
 std::vector<int> Molecule::getConformerIds() const {
+    std::lock_guard<std::mutex> lock(mol_mutex_);
     std::vector<int> ids;
     if (mol == nullptr) {
         return ids;
@@ -372,6 +381,7 @@ std::vector<int> Molecule::getConformerIds() const {
 
 bool Molecule::transformConformer(unsigned int conformer_id,
                                   const Eigen::Isometry3d& transformation) {
+    std::lock_guard<std::mutex> mol_lock(mol_mutex_);
     if (mol == nullptr || mol->getNumConformers() <= conformer_id) {
         throw std::runtime_error("Conformer " + std::to_string(conformer_id) + " does not exist");
     }
@@ -433,6 +443,7 @@ bool Molecule::transformSurface(unsigned int conformer_id,
 
 void Molecule::saveConformerSDF(unsigned int conformer_id, const std::string& filename,
                                 bool include_properties) const {
+    std::lock_guard<std::mutex> lock(mol_mutex_);
     if (mol == nullptr || mol->getNumConformers() <= conformer_id) {
         throw std::runtime_error("Conformer " + std::to_string(conformer_id) + " does not exist");
     }
@@ -483,6 +494,7 @@ void Molecule::saveConformerSDF(unsigned int conformer_id, const std::string& fi
 void Molecule::saveMultiConformerSDF(
     const std::vector<std::pair<int, AlignmentResult>>& conformer_results,
     const std::string& filename, bool include_properties) const {
+    std::lock_guard<std::mutex> lock(mol_mutex_);
     if (mol == nullptr) {
         throw std::runtime_error("Molecule is null");
     }
@@ -735,7 +747,11 @@ void Molecule::compute(const std::string& property_name, unsigned int conformer_
     std::unique_ptr<ISurfaceProperty> property;
 
     // print property name and smiles
-    auto curr_smiles = RDKit::MolToSmiles(*mol);
+    std::string curr_smiles;
+    {
+        std::lock_guard<std::mutex> lock(mol_mutex_);
+        curr_smiles = RDKit::MolToSmiles(*mol);
+    }
     // Special handling for ESP property to use the charge method from surface_params
     if (property_name == "esp") {
         property = std::make_unique<SurfaceESPProperty>(surface_params.charge_method);

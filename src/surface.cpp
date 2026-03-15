@@ -10,6 +10,8 @@
 #include <fstream>
 #include <random>
 #include <stdexcept>
+#include <thread>
+#include <sstream>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -79,7 +81,11 @@ Surface::Surface(const Molecule& molecule, int conformer_id, int num_vertices, d
     }
 
     // Automatically generate surface upon construction
-    generateSurface("molecule", "surface");
+    // Use a unique prefix for temporary files to ensure thread safety
+    std::stringstream ss;
+    ss << "msms_tmp_" << std::this_thread::get_id();
+    std::string prefix = ss.str();
+    generateSurface(prefix, prefix);
 
     // Apply subsampling based on sample_method
     applySubsampling();

@@ -534,6 +534,13 @@ void alignMolecule(Molecule& reference_mol, Molecule& input_mol, const std::stri
         0, params.num_vertices, params.radius, params.density, params.hdensity, params.type,
         params.program, params.sample_method, params.addH);
 
+    // Compute reference properties ONCE before starting multi-conformer alignment
+    if (!params.properties.empty()) {
+        for (const auto& property : params.properties) {
+            computeProperty(reference_mol, ref_conformer_id, property, params);
+        }
+    }
+
     // Check if this is a SMILES molecule (multiple conformers)
     bool is_smiles_molecule = input_mol.getNumConformers() > 1;
 
@@ -555,12 +562,8 @@ void alignMolecule(Molecule& reference_mol, Molecule& input_mol, const std::stri
                 conf_id, params.num_vertices, params.radius, params.density, params.hdensity,
                 params.type, params.program, params.sample_method, params.addH);
 
-            // Compute requested surface properties BEFORE alignment (for both molecules)
+            // Compute requested surface properties BEFORE alignment (only for the input molecule)
             if (!params.properties.empty()) {
-                for (const auto& property : params.properties) {
-                    computeProperty(reference_mol, ref_conformer_id, property, params);
-                }
-
                 for (const auto& property : params.properties) {
                     computeProperty(input_mol, input_conformer_id, property, params);
                 }

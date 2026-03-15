@@ -543,6 +543,7 @@ class Molecule {
      * @brief RDKit molecule object (read-write)
      */
     std::unique_ptr<RDKit::RWMol> mol;
+    mutable std::mutex mol_mutex_;
 
     /**
      * @brief Cache for generated surfaces
