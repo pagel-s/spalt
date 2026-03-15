@@ -1,7 +1,7 @@
 # spalt
 
-[![CI/CD Pipeline](https://github.com/username/spalt/actions/workflows/ci.yml/badge.svg)](https://github.com/username/spalt/actions/workflows/ci.yml)
-[![Code Coverage](https://codecov.io/gh/username/spalt/branch/main/graph/badge.svg)](https://codecov.io/gh/username/spalt)
+[![CI/CD Pipeline](https://github.com/pagel-s/spalt/actions/workflows/ci.yml/badge.svg)](https://github.com/pagel-s/spalt/actions/workflows/ci.yml)
+[![Code Coverage](https://codecov.io/gh/pagel-s/spalt/branch/main/graph/badge.svg)](https://codecov.io/gh/pagel-s/spalt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
 [![RDKit](https://img.shields.io/badge/RDKit-Required-orange.svg)](https://www.rdkit.org/)
@@ -31,6 +31,7 @@ A C++ library for generating molecular surfaces from SMILES strings or coordinat
 - **RDKit (C++)**: Required for molecular structure handling
 - **Eigen3**: Required for linear algebra operations
 - **Open3D**: Required for point cloud alignment
+- **OpenMP**: Optional (but highly recommended) for parallel processing
 - **MSMS**: Optional for surface generation (auto-detected)
 - **XTB**: Optional for quantum chemistry calculations (auto-detected)
 
@@ -49,7 +50,7 @@ sudo apt install build-essential cmake ninja-build \
     librdkit-dev rdkit-data libeigen3-dev libopen3d-dev
 
 # Clone and build
-git clone https://github.com/username/spalt.git
+git clone https://github.com/pagel-s/spalt.git
 cd spalt
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=Release \
@@ -57,7 +58,6 @@ cmake -S . -B build \
   -DSPALT_BUILD_TESTS=ON \
   [-DRDKIT_ROOT=/path/to/rdkit/installation] # if cant be found/ manually installed
 
-cmake --build build -j$(nproc)
 cmake --build build -j$(nproc)
 cmake --install build  # optional, installs library and executable
 ```
@@ -127,7 +127,11 @@ When providing 1D/2D input structures (e.g., SMILES strings or 2D SDF files), `s
 - `--charge-method M`: ESP charge method (`xtb`, `rdkit`) (default: rdkit)
 - `--mesh {msms|fibonacci}`: Surface generation method (default: fibonacci)
 - `--vertices N`: Number of surface vertices (default: 1000)
-- `--radius R`: Probe radius for surface generation (default: 1.4)
+- `--radius R`: Probe radius for surface generation (default: 1.2)
+- `--density D`: Surface density (default: 3.0)
+- `--hdensity H`: High density (default: 3.0)
+- `--type T`: Surface type: `tses` or `ases` (default: tses)
+- `--sample-method S`: Vertex sampling method: `full`, `fps`, `random` (default: full)
 
 ### **Conformer Generation**
 - `--sample M`: Number of initial candidate conformers to generate and optimize (default: 1). If `M > N`, `spalt` clusters the samples and picks the most diverse geometries.
@@ -135,6 +139,11 @@ When providing 1D/2D input structures (e.g., SMILES strings or 2D SDF files), `s
 - `--top-n K`: After alignment, save only the `K` best-aligned conformers based on surface fitness (default: all).
 - `--use-advanced`: Shortcut flag that automatically sets `--sample 50` for deeper conformational searching.
 - `--random-seed N`: Random seed for reproducible conformer generation (default: 4).
+
+### **Processing**
+- `--threads N`: Number of CPU threads to use for parallel processing (default: auto).
+- `--addH`: Add explicit hydrogens to molecules (default: true).
+- `--removeH`: Remove explicit hydrogens from input molecules (default: keep/add).
 
 ### **Output Options**
 - `--output-type {mesh|points}`: Export as triangular mesh or point cloud (default: mesh)
