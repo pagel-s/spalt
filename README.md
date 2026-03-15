@@ -141,6 +141,26 @@ When providing 1D/2D input structures (e.g., SMILES strings or 2D SDF files), `s
 - `--include-normals`: Include vertex normals in output (default: false)
 - `--save-meshes`: Save individual surface files for each conformer
 
+## Build and Compile
+
+Make sure you have all the [Requirements](#requirements) installed (e.g., via `apt` and `conda`). 
+
+```bash
+# Clone the repository
+git clone https://github.com/pagel-s/spalt.git
+cd spalt
+
+# Create build directory and configure with CMake
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+
+# Compile the project utilizing all available CPU cores
+make -j$(nproc)
+
+# The binary will be available at build/spalt
+./spalt --help
+```
+
 ## Testing
 
 ```bash
