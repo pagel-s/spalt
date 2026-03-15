@@ -102,15 +102,22 @@ Molecule::~Molecule() {
 
 Molecule::Molecule(Molecule&& other) noexcept
     : smiles(std::move(other.smiles)), charge(other.charge), mol(std::move(other.mol)),
-      surface_cache_(std::move(other.surface_cache_)),
-      surface_property_cache_(std::move(other.surface_property_cache_)),
       property_registry_(std::move(other.property_registry_)) {
+    
+    std::lock_guard<std::mutex> lock1(other.surface_cache_mutex_);
+    std::lock_guard<std::mutex> lock2(other.property_cache_mutex_);
+    surface_cache_ = std::move(other.surface_cache_);
+    surface_property_cache_ = std::move(other.surface_property_cache_);
+    
     // Reset the moved-from object
     other.charge = 0;
 }
 
 Molecule& Molecule::operator=(Molecule&& other) noexcept {
     if (this != &other) {
+        // We must lock both objects to avoid deadlocks
+        std::scoped_lock lock(surface_cache_mutex_, property_cache_mutex_,
+                              other.surface_cache_mutex_, other.property_cache_mutex_);
         smiles = std::move(other.smiles);
         charge = other.charge;
         mol = std::move(other.mol);
@@ -278,9 +285,12 @@ int Molecule::createSurface(unsigned int conformer_id, unsigned int num_vertices
         throw std::runtime_error("Conformer " + std::to_string(conformer_id) + " does not exist");
     }
 
-    auto it = surface_cache_.find(conformer_id);
-    if (it != surface_cache_.end()) {
-        return conformer_id;  // Surface already exists
+    {
+        std::lock_guard<std::mutex> lock(surface_cache_mutex_);
+        auto it = surface_cache_.find(conformer_id);
+        if (it != surface_cache_.end()) {
+            return conformer_id;  // Surface already exists
+        }
     }
 
     if (addH) {
@@ -299,12 +309,14 @@ int Molecule::createSurface(unsigned int conformer_id, unsigned int num_vertices
         add_hydrogens_to_mol_if_needed();
     }
 
+    std::lock_guard<std::mutex> lock(surface_cache_mutex_);
     surface_cache_[conformer_id] = surface;
     return conformer_id;
 }
 
 const std::map<int, std::pair<std::string, std::vector<double>>>& Molecule::getSurfaceVertices(
     unsigned int conformer_id) const {
+    std::lock_guard<std::mutex> lock(surface_cache_mutex_);
     auto it = surface_cache_.find(conformer_id);
     if (it == surface_cache_.end()) {
         throw std::runtime_error("Surface not found for conformer " + std::to_string(conformer_id));
@@ -313,10 +325,14 @@ const std::map<int, std::pair<std::string, std::vector<double>>>& Molecule::getS
 }
 
 void Molecule::clearSurfaceCache() {
+    std::lock_guard<std::mutex> lock1(surface_cache_mutex_);
+    std::lock_guard<std::mutex> lock2(property_cache_mutex_);
     surface_cache_.clear();
+    surface_property_cache_.clear();
 }
 
 unsigned int Molecule::getSurfaceVertexCount(unsigned int conformer_id) const {
+    std::lock_guard<std::mutex> lock(surface_cache_mutex_);
     auto it = surface_cache_.find(conformer_id);
     if (it == surface_cache_.end()) {
         throw std::runtime_error("Surface not found for conformer " + std::to_string(conformer_id));
@@ -377,6 +393,7 @@ bool Molecule::transformConformer(unsigned int conformer_id,
         }
 
         // Invalidate cached surface for this conformer since coordinates changed
+        std::lock_guard<std::mutex> lock(surface_cache_mutex_);
         auto it = surface_cache_.find(conformer_id);
         if (it != surface_cache_.end()) {
             surface_cache_.erase(it);
@@ -392,15 +409,20 @@ bool Molecule::transformConformer(unsigned int conformer_id,
 
 bool Molecule::transformSurface(unsigned int conformer_id,
                                 const Eigen::Isometry3d& transformation) {
-    // Check if surface exists for this conformer
-    auto it = surface_cache_.find(conformer_id);
-    if (it == surface_cache_.end()) {
-        throw std::runtime_error("Surface not found for conformer " + std::to_string(conformer_id));
+    std::shared_ptr<Surface> surface;
+    {
+        // Check if surface exists for this conformer
+        std::lock_guard<std::mutex> lock(surface_cache_mutex_);
+        auto it = surface_cache_.find(conformer_id);
+        if (it == surface_cache_.end()) {
+            throw std::runtime_error("Surface not found for conformer " + std::to_string(conformer_id));
+        }
+        surface = it->second;
     }
 
     try {
         // Apply transformation directly to surface vertices
-        it->second->transformSurface(transformation);
+        surface->transformSurface(transformation);
         return true;
     } catch (const std::exception& e) {
         std::cerr << "Error transforming surface for conformer " << conformer_id << ": " << e.what()
@@ -550,22 +572,30 @@ void Molecule::saveMultiConformerSDF(
 void Molecule::saveSurfacePointCloud(unsigned int conformer_id, const std::string& filename,
                                      bool include_normals, bool include_colors,
                                      const std::vector<std::string>& properties) const {
-    auto it = surface_cache_.find(conformer_id);
-    if (it == surface_cache_.end()) {
-        throw std::runtime_error("Surface not found for conformer " + std::to_string(conformer_id));
+    std::shared_ptr<Surface> surface;
+    {
+        std::lock_guard<std::mutex> lock(surface_cache_mutex_);
+        auto it = surface_cache_.find(conformer_id);
+        if (it == surface_cache_.end()) {
+            throw std::runtime_error("Surface not found for conformer " + std::to_string(conformer_id));
+        }
+        surface = it->second;
     }
 
     // Get property cache for this surface if available
     // Combine all property caches into a single cache for multiple properties
     std::unordered_map<std::string, std::any> combined_cache;
-    if (!properties.empty()) {
-        for (const auto& property : properties) {
-            std::string cache_key = std::to_string(conformer_id) + "_" + property;
-            auto cache_it = surface_property_cache_.find(cache_key);
-            if (cache_it != surface_property_cache_.end()) {
-                // Merge the individual property cache into combined cache
-                for (const auto& [key, value] : cache_it->second) {
-                    combined_cache[key] = value;
+    {
+        std::lock_guard<std::mutex> lock(property_cache_mutex_);
+        if (!properties.empty()) {
+            for (const auto& property : properties) {
+                std::string cache_key = std::to_string(conformer_id) + "_" + property;
+                auto cache_it = surface_property_cache_.find(cache_key);
+                if (cache_it != surface_property_cache_.end()) {
+                    // Merge the individual property cache into combined cache
+                    for (const auto& [key, value] : cache_it->second) {
+                        combined_cache[key] = value;
+                    }
                 }
             }
         }
@@ -576,29 +606,37 @@ void Molecule::saveSurfacePointCloud(unsigned int conformer_id, const std::strin
         property_cache = &combined_cache;
     }
 
-    it->second->savePointCloud(filename, include_normals, include_colors, properties,
+    surface->savePointCloud(filename, include_normals, include_colors, properties,
                                property_cache);
 }
 
 void Molecule::saveSurfaceMesh(unsigned int conformer_id, const std::string& filename,
                                bool include_normals, bool include_colors,
                                const std::vector<std::string>& properties) const {
-    auto it = surface_cache_.find(conformer_id);
-    if (it == surface_cache_.end()) {
-        throw std::runtime_error("Surface not found for conformer " + std::to_string(conformer_id));
+    std::shared_ptr<Surface> surface;
+    {
+        std::lock_guard<std::mutex> lock(surface_cache_mutex_);
+        auto it = surface_cache_.find(conformer_id);
+        if (it == surface_cache_.end()) {
+            throw std::runtime_error("Surface not found for conformer " + std::to_string(conformer_id));
+        }
+        surface = it->second;
     }
 
     // Get property cache for this surface if available
     // Combine all property caches into a single cache for multiple properties
     std::unordered_map<std::string, std::any> combined_cache;
-    if (!properties.empty()) {
-        for (const auto& property : properties) {
-            std::string cache_key = std::to_string(conformer_id) + "_" + property;
-            auto cache_it = surface_property_cache_.find(cache_key);
-            if (cache_it != surface_property_cache_.end()) {
-                // Merge the individual property cache into combined cache
-                for (const auto& [key, value] : cache_it->second) {
-                    combined_cache[key] = value;
+    {
+        std::lock_guard<std::mutex> lock(property_cache_mutex_);
+        if (!properties.empty()) {
+            for (const auto& property : properties) {
+                std::string cache_key = std::to_string(conformer_id) + "_" + property;
+                auto cache_it = surface_property_cache_.find(cache_key);
+                if (cache_it != surface_property_cache_.end()) {
+                    // Merge the individual property cache into combined cache
+                    for (const auto& [key, value] : cache_it->second) {
+                        combined_cache[key] = value;
+                    }
                 }
             }
         }
@@ -609,7 +647,7 @@ void Molecule::saveSurfaceMesh(unsigned int conformer_id, const std::string& fil
         property_cache = &combined_cache;
     }
 
-    it->second->saveMesh(filename, include_normals, include_colors, properties, property_cache);
+    surface->saveMesh(filename, include_normals, include_colors, properties, property_cache);
 }
 
 std::vector<std::unique_ptr<Molecule>> Molecule::loadFromMultiMolFile(const std::string& filename) {
@@ -683,12 +721,15 @@ void Molecule::compute(const std::string& property_name, unsigned int conformer_
                       surface_params.program, surface_params.sample_method, surface_params.addH);
 
     // Get the surface object
-    auto surface_it = surface_cache_.find(surface_id);
-    if (surface_it == surface_cache_.end()) {
-        throw std::runtime_error("Surface not found after creation");
+    std::shared_ptr<Surface> surface;
+    {
+        std::lock_guard<std::mutex> lock(surface_cache_mutex_);
+        auto surface_it = surface_cache_.find(surface_id);
+        if (surface_it == surface_cache_.end()) {
+            throw std::runtime_error("Surface not found after creation");
+        }
+        surface = surface_it->second;
     }
-
-    std::shared_ptr<Surface> surface = surface_it->second;
 
     // Create property object using the factory
     std::unique_ptr<ISurfaceProperty> property;
@@ -709,7 +750,10 @@ void Molecule::compute(const std::string& property_name, unsigned int conformer_
     property->compute(*surface, cache);
 
     // Store the cache using surface_id + property_name as key
-    surface_property_cache_[std::to_string(surface_id) + "_" + property_name] = cache;
+    {
+        std::lock_guard<std::mutex> lock(property_cache_mutex_);
+        surface_property_cache_[std::to_string(surface_id) + "_" + property_name] = cache;
+    }
 }
 
 void Molecule::registerProperty(const std::string& property_name,

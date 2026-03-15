@@ -539,6 +539,9 @@ void alignMolecule(Molecule& reference_mol, Molecule& input_mol, const std::stri
         std::vector<std::pair<int, Molecule::AlignmentResult>> conformer_results;
 
         // Process each conformer
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic)
+#endif
         for (int conf_id = 0; conf_id < static_cast<int>(input_mol.getNumConformers()); ++conf_id) {
             // Create surface for this conformer
             int input_conformer_id = input_mol.createSurface(
@@ -583,15 +586,12 @@ void alignMolecule(Molecule& reference_mol, Molecule& input_mol, const std::stri
             input_mol.transformConformer(input_conformer_id, alignment_result.transformation);
 
             // Store results
-            conformer_results.push_back({conf_id, alignment_result});
-
-            // std::cout << "  Conformer " << conf_id << " alignment:" << std::endl;
-            // std::cout << "    Fitness: " << std::fixed << std::setprecision(6)
-            //           << alignment_result.fitness << std::endl;
-            // std::cout << "    RMSE: " << std::fixed << std::setprecision(6)
-            //           << alignment_result.inlier_rmse << std::endl;
-            // std::cout << "    Used Colored ICP: "
-            //   << (alignment_result.used_colored_icp ? "Yes" : "No") << std::endl;
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+            {
+                conformer_results.push_back({conf_id, alignment_result});
+            }
         }
 
         // Sort conformers by fitness (higher is better) - ALWAYS sort regardless of top_n

@@ -145,6 +145,8 @@ else()
   )
 endif()
 
+find_package(OpenMP)
+
 # Create spalt library
 add_library(spalt_lib
   src/surface.cpp
@@ -160,6 +162,10 @@ add_library(spalt_lib
   src/conformer_generator.cpp
   src/surface_fibonacci.cpp
 )
+
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(spalt_lib PUBLIC OpenMP::OpenMP_CXX)
+endif()
 
 # Set library properties
 set_target_properties(spalt_lib PROPERTIES

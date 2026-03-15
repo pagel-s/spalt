@@ -15,6 +15,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <mutex>
 #include "conformer_params.h"
 #include "props/esp.h"
 
@@ -245,6 +246,7 @@ class Molecule {
     template <typename T>
     const T& getProperty(const std::string& property_name, const std::string& key,
                          unsigned int conformer_id = 0) const {
+        std::lock_guard<std::mutex> lock(property_cache_mutex_);
         // Find the surface_id for this conformer (assuming it's the same as conformer_id for now)
         std::string cache_key = std::to_string(conformer_id) + "_" + property_name;
         auto cache_it = surface_property_cache_.find(cache_key);
@@ -546,6 +548,7 @@ class Molecule {
      * Each conformer has its own surface representation.
      */
     mutable std::map<int, std::shared_ptr<Surface>> surface_cache_;
+    mutable std::mutex surface_cache_mutex_;
 
     /**
      * @brief Cache for computed surface properties
@@ -554,6 +557,7 @@ class Molecule {
      */
     mutable std::map<std::string, std::unordered_map<std::string, std::any>>
         surface_property_cache_;
+    mutable std::mutex property_cache_mutex_;
 
     /**
      * @brief Registry of property factories
