@@ -68,6 +68,9 @@ struct SurfaceParams {
 
     // Hydrogen control parameters
     bool addH = true;  ///< Whether to add explicit hydrogens to molecules (default: true)
+
+    // Processing settings
+    int num_threads = 0;  ///< Number of threads to use for parallel processing (0 = auto)
 };
 
 /**

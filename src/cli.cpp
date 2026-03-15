@@ -9,6 +9,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include "molecule.h"
 #include "props/esp.h"
 #include "surface.h"
@@ -89,7 +92,9 @@ void printUsage(const char* program_name) {
               << std::endl;
     std::cout << "  --addH            Add explicit hydrogens to molecules (default: true)"
               << std::endl;
-    std::cout << "  --removeH         Remove explicit hydrogens from molecules (default: false)\n"
+    std::cout << "  --removeH         Remove explicit hydrogens from molecules (default: false)"
+              << std::endl;
+    std::cout << "  --threads N       Number of CPU threads to use for parallel processing (default: auto)\n"
               << std::endl;
 
     std::cout << "Examples:" << std::endl;
@@ -271,6 +276,8 @@ SurfaceParams parseSurfaceParams(int argc, char* argv[], int& start_index) {
             params.addH = true;
         } else if (arg == "--removeH") {
             params.addH = false;
+        } else if (arg == "--threads" && start_index + 1 < argc) {
+            params.num_threads = std::stoi(argv[++start_index]);
         } else {
             break;  // Unknown argument, stop parsing
         }
@@ -728,6 +735,12 @@ int main(int argc, char* argv[]) {
 
     int arg_index = 4;
     SurfaceParams surface_params = parseSurfaceParams(argc, argv, arg_index);
+
+#ifdef _OPENMP
+    if (surface_params.num_threads > 0) {
+        omp_set_num_threads(surface_params.num_threads);
+    }
+#endif
 
     try {
         std::filesystem::create_directories(output_dir);
