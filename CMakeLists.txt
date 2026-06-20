@@ -49,6 +49,19 @@ find_package(RDKit QUIET)
 
 if(RDKit_FOUND)
   message(STATUS "RDKit found via find_package")
+
+  # The RDKit CMake config exports namespaced targets (RDKit::GraphMol, ...)
+  # but not a plain `RDKit` target. Create one so the rest of this file (and
+  # downstream targets) can link a single `RDKit` target that also propagates
+  # the include directories (carried transitively via RDKit::rdkit_base).
+  if(NOT TARGET RDKit)
+    add_library(RDKit INTERFACE IMPORTED GLOBAL)
+    set_target_properties(RDKit PROPERTIES
+      INTERFACE_LINK_LIBRARIES
+        "RDKit::GraphMol;RDKit::SmilesParse;RDKit::FileParsers;RDKit::RDGeneral;RDKit::SubstructMatch;RDKit::DistGeometry;RDKit::DistGeomHelpers;RDKit::PartialCharges;RDKit::ForceFieldHelpers;RDKit::ForceField;RDKit::ChemTransforms;RDKit::Descriptors;RDKit::MolAlign;RDKit::ChemicalFeatures;RDKit::MolChemicalFeatures"
+    )
+    message(STATUS "Created RDKit interface target from namespaced RDKit:: targets")
+  endif()
 else()
   message(STATUS "RDKit not found via find_package, trying manual search...")
 
